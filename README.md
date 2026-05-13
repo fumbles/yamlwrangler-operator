@@ -18,6 +18,11 @@ The App Dashboard Operator provides two main controllers:
 - **Description Field**: Custom descriptions for each custom link
 - **Real-time Updates**: Watches for changes and updates ConfigMaps automatically
 
+## Screenshots
+
+
+<img width="1668" height="866" alt="image" src="https://github.com/user-attachments/assets/8b398e87-d7f5-4acf-a469-3a57cf4c4f57" />
+
 ## Quick Start
 
 ### 1. Label a Namespace
