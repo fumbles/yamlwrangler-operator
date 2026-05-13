@@ -1,12 +1,24 @@
+**/node_modules
+**/dist
+**/.DS_Store
+.devcontainer/dev.env
+integration-tests/.auth
+integration-tests/results
 
-# Kubernetes Secrets - NEVER COMMIT THESE
-*-secret.yaml
-*secret*.yaml
-sealed-secrets-key-backup.yaml
+# Jest
+coverage/
+jest-junit.xml
 
-# Exception: Allow sealed secrets
-!*-sealedsecret.yaml
-!*sealedsecret*.yaml
-.DS_Store
-backups
+# Yarn v4 (Berry)
+.yarn/*
+install-state.gz
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+docker-push.sh
+.yarn
+.vscode/
+.devcontainer/
 .env

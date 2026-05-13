@@ -18,8 +18,8 @@ spec:
       serviceAccountName: app-dashboard-operator
       containers:
         - name: manager
-          image: default-route-openshift-image-registry.apps.sno.yamlwrangler.com/app-dashboard-operator/app-dashboard-operator:latest
-          imagePullPolicy: Always
+          image: fumbles/yamlwrangler-operator:v1.0.0
+          imagePullPolicy: IfNotPresent
           command:
             - /manager
           args:
