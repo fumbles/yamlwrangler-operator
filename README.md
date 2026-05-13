@@ -1,3 +1,7 @@
+
+![Docker Pulls](https://img.shields.io/docker/pulls/fumbles/yamlwrangler-operator)
+![Docker Image Version](https://img.shields.io/docker/v/fumbles/yamlwrangler-operator)
+
 # App Dashboard Operator
 
 A Kubernetes operator that automatically manages application discovery and configuration for the App Dashboard Console Plugin.
@@ -390,9 +394,6 @@ The operator requires these permissions:
                                  └─────────────────┘
 ```
 
-## Docker Images
-![Docker Pulls](https://img.shields.io/docker/pulls/fumbles/yamlwrangler-operator)
-![Docker Image Version](https://img.shields.io/docker/v/fumbles/yamlwrangler-operator)
 ## Related Projects
 
 - [App Dashboard Console Plugin](../app-dashboard-console-plugin/) - The UI component
