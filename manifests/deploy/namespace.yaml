@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: app-dashboard-operator
+  labels:
+    app: app-dashboard-operator
+
+# Made with Bob

@@ -1,0 +1,12 @@
+
+# Kubernetes Secrets - NEVER COMMIT THESE
+*-secret.yaml
+*secret*.yaml
+sealed-secrets-key-backup.yaml
+
+# Exception: Allow sealed secrets
+!*-sealedsecret.yaml
+!*sealedsecret*.yaml
+.DS_Store
+backups
+.env

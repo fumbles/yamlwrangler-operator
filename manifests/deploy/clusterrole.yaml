@@ -1,0 +1,97 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: app-dashboard-operator
+rules:
+  # DashboardAppGroup resources
+  - apiGroups:
+      - dashboard.yamlwrangler.com
+    resources:
+      - dashboardappgroups
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+  - apiGroups:
+      - dashboard.yamlwrangler.com
+    resources:
+      - dashboardappgroups/status
+    verbs:
+      - get
+      - update
+      - patch
+  - apiGroups:
+      - dashboard.yamlwrangler.com
+    resources:
+      - dashboardappgroups/finalizers
+    verbs:
+      - update
+  # Deployments - need to read and update annotations
+  - apiGroups:
+      - apps
+    resources:
+      - deployments
+    verbs:
+      - get
+      - list
+      - watch
+      - update
+      - patch
+  # Namespaces - need to watch for labeled namespaces
+  - apiGroups:
+      - ""
+    resources:
+      - namespaces
+    verbs:
+      - get
+      - list
+      - watch
+  # ConfigMaps - need to create and watch dashboard configs
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+  # Routes - need to read routes for auto-discovery
+  - apiGroups:
+      - route.openshift.io
+    resources:
+      - routes
+    verbs:
+      - get
+      - list
+      - watch
+  # Events for logging
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - create
+      - patch
+  # Leader election
+  - apiGroups:
+      - coordination.k8s.io
+    resources:
+      - leases
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+
+# Made with Bob
