@@ -1,6 +1,6 @@
 
-![Docker Pulls](https://img.shields.io/docker/pulls/fumbles/yamlwrangler-operator)
-![Docker Image Version](https://img.shields.io/docker/v/fumbles/yamlwrangler-operator)
+[![Docker Pulls](https://img.shields.io/docker/pulls/fumbles/yamlwrangler-operator?logo=docker)](https://hub.docker.com/r/fumbles/yamlwrangler-operator)
+[![Docker Image Version](https://img.shields.io/docker/v/fumbles/yamlwrangler-operator?sort=semver&logo=docker)](https://hub.docker.com/r/fumbles/yamlwrangler-operator)
 
 # App Dashboard Operator
 
