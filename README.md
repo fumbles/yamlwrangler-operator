@@ -91,7 +91,7 @@ customLinks:
 ```yaml
 customLinks:
   - name: vpn-metube
-    url: https://vpn-metube-media.apps.sno.yamlwrangler.com
+    url: https://vpn-metube-media.apps.<domain.tld>
     description: Metube sidecar
 ```
 
@@ -127,13 +127,13 @@ make build
 
 # Build the image
 TAG=v1.0.0-$(date +%Y%m%d%H%M%S)
-podman build -t default-route-openshift-image-registry.apps.sno.yamlwrangler.com/app-dashboard-operator/app-dashboard-operator:$TAG .
+podman build -t default-route-openshift-image-registry.apps.<domain.tld>/app-dashboard-operator/app-dashboard-operator:$TAG .
 
 # Login to registry
 oc registry login
 
 # Push the image
-podman push default-route-openshift-image-registry.apps.sno.yamlwrangler.com/app-dashboard-operator/app-dashboard-operator:$TAG
+podman push default-route-openshift-image-registry.apps.<domain.tld>/app-dashboard-operator/app-dashboard-operator:$TAG
 
 # Deploy
 kubectl apply -f manifests/deploy/
@@ -159,7 +159,7 @@ oc get imagestreamtags -n app-dashboard-operator
 oc get deployment app-dashboard-operator -n app-dashboard-operator -o jsonpath='{.spec.template.spec.containers[0].image}'
 
 # Example output:
-# default-route-openshift-image-registry.apps.sno.yamlwrangler.com/app-dashboard-operator/app-dashboard-operator:v1.0.0-20260513040330
+# default-route-openshift-image-registry.apps.<domain.tld>/app-dashboard-operator/app-dashboard-operator:v1.0.0-20260513040330
 ```
 
 ### Check Operator Pods
