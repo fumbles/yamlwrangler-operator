@@ -13,7 +13,7 @@ The App Dashboard Operator provides two main controllers:
 
 1. **Namespace Controller**: Watches labeled namespaces and auto-generates ConfigMaps with all deployments
 2. **ConfigMap Controller**: Processes ConfigMaps to resolve route names to full URLs for custom links
-
+	 - Labels deployments so the Dashboard can pick them up in the UI
 ## Features
 
 - **Automatic Discovery**: Label a namespace and all deployments are automatically discovered
