@@ -1,6 +1,7 @@
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/fumbles/yamlwrangler-operator?logo=docker)](https://hub.docker.com/r/fumbles/yamlwrangler-operator)
 [![Docker Image Version](https://img.shields.io/docker/v/fumbles/yamlwrangler-operator?sort=semver&logo=docker)](https://hub.docker.com/r/fumbles/yamlwrangler-operator)
+[![App Showcase](https://img.shields.io/badge/App_Showcase-yamlwrangler.com-ee0000?logo=redhatopenshift&logoColor=white)](https://yamlwrangler.com)
 
 # App Dashboard Operator
 
