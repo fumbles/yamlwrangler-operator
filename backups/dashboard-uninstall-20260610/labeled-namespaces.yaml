@@ -1,0 +1,423 @@
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: Namespace
+  metadata:
+    annotations:
+      openshift.io/sa.scc.mcs: s0:c32,c4
+      openshift.io/sa.scc.supplemental-groups: 1001000000/10000
+      openshift.io/sa.scc.uid-range: 1001000000/10000
+      security.openshift.io/MinimallySufficientPodSecurityStandard: restricted
+    creationTimestamp: "2026-06-10T13:39:57Z"
+    labels:
+      app.kubernetes.io/managed-by: app-dashboard-operator
+      app.kubernetes.io/name: app-dashboard
+      app.kubernetes.io/part-of: yamlwrangler-dashboard
+      dashboard.yamlwrangler.com/enabled: "true"
+      kubernetes.io/metadata.name: app-dashboard
+      pod-security.kubernetes.io/audit: restricted
+      pod-security.kubernetes.io/audit-version: latest
+      pod-security.kubernetes.io/warn: restricted
+      pod-security.kubernetes.io/warn-version: latest
+    name: app-dashboard
+    resourceVersion: "26708472"
+    uid: 772653fc-00ae-4b37-9cc5-71a564823deb
+  spec:
+    finalizers:
+    - kubernetes
+  status:
+    phase: Active
+- apiVersion: v1
+  kind: Namespace
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"Namespace","metadata":{"annotations":{},"name":"games"},"spec":{},"status":{}}
+      openshift.io/sa.scc.mcs: s0:c28,c7
+      openshift.io/sa.scc.supplemental-groups: 1000770000/10000
+      openshift.io/sa.scc.uid-range: 1000770000/10000
+      security.openshift.io/MinimallySufficientPodSecurityStandard: privileged
+    creationTimestamp: "2026-06-10T03:06:28Z"
+    labels:
+      dashboard.yamlwrangler.com/enabled: "true"
+      kubernetes.io/metadata.name: games
+      pod-security.kubernetes.io/audit: privileged
+      pod-security.kubernetes.io/audit-version: latest
+      pod-security.kubernetes.io/warn: privileged
+      pod-security.kubernetes.io/warn-version: latest
+    name: games
+    resourceVersion: "26254798"
+    uid: 350ba167-0642-49ce-b707-04d2aa514459
+  spec:
+    finalizers:
+    - kubernetes
+  status:
+    phase: Active
+- apiVersion: v1
+  kind: Namespace
+  metadata:
+    annotations:
+      openshift.io/sa.scc.mcs: s0:c31,c5
+      openshift.io/sa.scc.supplemental-groups: 1000940000/10000
+      openshift.io/sa.scc.uid-range: 1000940000/10000
+      security.openshift.io/MinimallySufficientPodSecurityStandard: privileged
+    creationTimestamp: "2026-05-14T21:45:03Z"
+    labels:
+      app.kubernetes.io/component: ibm-storage-fusion
+      dashboard.yamlwrangler.com/enabled: "true"
+      kubernetes.io/metadata.name: ibm-spectrum-fusion-ns
+      olm.operatorgroup.uid/37d56400-3324-4347-9d94-1b0308e7dc54: ""
+      pod-security.kubernetes.io/audit: privileged
+      pod-security.kubernetes.io/audit-version: latest
+      pod-security.kubernetes.io/warn: privileged
+      pod-security.kubernetes.io/warn-version: latest
+    name: ibm-spectrum-fusion-ns
+    resourceVersion: "4681559"
+    uid: b82af1ee-c21a-4818-a19a-efb022b90bda
+  spec:
+    finalizers:
+    - kubernetes
+  status:
+    phase: Active
+- apiVersion: v1
+  kind: Namespace
+  metadata:
+    annotations:
+      openshift.io/description: ""
+      openshift.io/display-name: ""
+      openshift.io/requester: fumbles
+      openshift.io/sa.scc.mcs: s0:c32,c9
+      openshift.io/sa.scc.supplemental-groups: 1001010000/10000
+      openshift.io/sa.scc.uid-range: 1001010000/10000
+      security.openshift.io/MinimallySufficientPodSecurityStandard: privileged
+    creationTimestamp: "2026-05-24T19:17:37Z"
+    labels:
+      dashboard.yamlwrangler.com/enabled: "true"
+      kubernetes.io/metadata.name: keel
+      pod-security.kubernetes.io/audit: privileged
+      pod-security.kubernetes.io/audit-version: latest
+      pod-security.kubernetes.io/warn: privileged
+      pod-security.kubernetes.io/warn-version: latest
+    name: keel
+    resourceVersion: "11475424"
+    uid: 9bfd0010-ac34-4acf-afb5-5250b06a1831
+  spec:
+    finalizers:
+    - kubernetes
+  status:
+    phase: Active
+- apiVersion: v1
+  kind: Namespace
+  metadata:
+    annotations:
+      openshift.io/sa.scc.mcs: s0:c32,c24
+      openshift.io/sa.scc.supplemental-groups: 1001040000/10000
+      openshift.io/sa.scc.uid-range: 1001040000/10000
+      security.openshift.io/MinimallySufficientPodSecurityStandard: restricted
+    creationTimestamp: "2026-05-24T21:01:56Z"
+    labels:
+      dashboard.yamlwrangler.com/enabled: "true"
+      kubernetes.io/metadata.name: kyverno
+      name: kyverno
+      pod-security.kubernetes.io/audit: restricted
+      pod-security.kubernetes.io/audit-version: latest
+      pod-security.kubernetes.io/warn: restricted
+      pod-security.kubernetes.io/warn-version: latest
+    name: kyverno
+    resourceVersion: "12679297"
+    uid: 339ae431-c190-4094-bad1-b2a8c9ae8591
+  spec:
+    finalizers:
+    - kubernetes
+  status:
+    phase: Active
+- apiVersion: v1
+  kind: Namespace
+  metadata:
+    annotations:
+      openshift.io/sa.scc.mcs: s0:c28,c27
+      openshift.io/sa.scc.supplemental-groups: 1000810000/10000
+      openshift.io/sa.scc.uid-range: 1000810000/10000
+      security.openshift.io/MinimallySufficientPodSecurityStandard: privileged
+    creationTimestamp: "2026-04-29T05:58:21Z"
+    labels:
+      dashboard.yamlwrangler.com/enabled: "true"
+      kubernetes.io/metadata.name: lab
+      pod-security.kubernetes.io/audit: privileged
+      pod-security.kubernetes.io/audit-version: latest
+      pod-security.kubernetes.io/enforce: privileged
+      pod-security.kubernetes.io/warn: privileged
+      pod-security.kubernetes.io/warn-version: latest
+    name: lab
+    resourceVersion: "3660361"
+    uid: 47608ab5-610d-493d-a0e2-1fcc2f167ddf
+  spec:
+    finalizers:
+    - kubernetes
+  status:
+    phase: Active
+- apiVersion: v1
+  kind: Namespace
+  metadata:
+    annotations:
+      openshift.io/sa.scc.mcs: s0:c31,c10
+      openshift.io/sa.scc.supplemental-groups: 1000950000/10000
+      openshift.io/sa.scc.uid-range: 1000950000/10000
+      security.openshift.io/MinimallySufficientPodSecurityStandard: privileged
+    creationTimestamp: "2026-05-14T05:09:15Z"
+    labels:
+      dashboard.yamlwrangler.com/enabled: "true"
+      kubernetes.io/metadata.name: longhorn-system
+      pod-security.kubernetes.io/audit: privileged
+      pod-security.kubernetes.io/audit-version: latest
+      pod-security.kubernetes.io/warn: privileged
+      pod-security.kubernetes.io/warn-version: latest
+    name: longhorn-system
+    resourceVersion: "4059100"
+    uid: 94526974-649a-433f-beb2-8a31a1860d42
+  spec:
+    finalizers:
+    - kubernetes
+  status:
+    phase: Active
+- apiVersion: v1
+  kind: Namespace
+  metadata:
+    annotations:
+      openshift.io/description: ""
+      openshift.io/display-name: ""
+      openshift.io/requester: fumbles
+      openshift.io/sa.scc.mcs: s0:c28,c2
+      openshift.io/sa.scc.supplemental-groups: 1000760000/10000
+      openshift.io/sa.scc.uid-range: 1000760000/10000
+      security.openshift.io/MinimallySufficientPodSecurityStandard: privileged
+    creationTimestamp: "2026-04-29T03:50:11Z"
+    labels:
+      dashboard.yamlwrangler.com/enabled: "true"
+      keel-auto-update: "true"
+      kubernetes.io/metadata.name: media
+      pod-security.kubernetes.io/audit: privileged
+      pod-security.kubernetes.io/audit-version: latest
+      pod-security.kubernetes.io/warn: privileged
+      pod-security.kubernetes.io/warn-version: latest
+    name: media
+    resourceVersion: "11414949"
+    uid: b1b1b327-77b8-40d4-a473-91bc5f418c03
+  spec:
+    finalizers:
+    - kubernetes
+  status:
+    phase: Active
+- apiVersion: v1
+  kind: Namespace
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: ntfy:/Namespace:ntfy/ntfy
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"Namespace","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"ntfy:/Namespace:ntfy/ntfy"},"labels":{"name":"ntfy"},"name":"ntfy"}}
+      openshift.io/sa.scc.mcs: s0:c30,c25
+      openshift.io/sa.scc.supplemental-groups: 1000920000/10000
+      openshift.io/sa.scc.uid-range: 1000920000/10000
+      security.openshift.io/MinimallySufficientPodSecurityStandard: privileged
+    creationTimestamp: "2026-05-19T06:45:06Z"
+    labels:
+      dashboard.yamlwrangler.com/enabled: "true"
+      keel-auto-update: "true"
+      kubernetes.io/metadata.name: ntfy
+      name: ntfy
+      pod-security.kubernetes.io/audit: privileged
+      pod-security.kubernetes.io/audit-version: latest
+      pod-security.kubernetes.io/warn: privileged
+      pod-security.kubernetes.io/warn-version: latest
+    name: ntfy
+    resourceVersion: "26248733"
+    uid: 7e14809d-9ef2-49c7-9772-718dbbc8eb46
+  spec:
+    finalizers:
+    - kubernetes
+  status:
+    phase: Active
+- apiVersion: v1
+  kind: Namespace
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: ocp-alert-ntfy:/Namespace:ocp-alert-ntfy/ocp-alert-ntfy
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"Namespace","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"ocp-alert-ntfy:/Namespace:ocp-alert-ntfy/ocp-alert-ntfy"},"name":"ocp-alert-ntfy"}}
+      openshift.io/sa.scc.mcs: s0:c31,c0
+      openshift.io/sa.scc.supplemental-groups: 1000930000/10000
+      openshift.io/sa.scc.uid-range: 1000930000/10000
+      security.openshift.io/MinimallySufficientPodSecurityStandard: restricted
+    creationTimestamp: "2026-05-19T20:42:29Z"
+    labels:
+      dashboard.yamlwrangler.com/enabled: "true"
+      kubernetes.io/metadata.name: ocp-alert-ntfy
+      pod-security.kubernetes.io/audit: restricted
+      pod-security.kubernetes.io/audit-version: latest
+      pod-security.kubernetes.io/warn: restricted
+      pod-security.kubernetes.io/warn-version: latest
+    name: ocp-alert-ntfy
+    resourceVersion: "26259646"
+    uid: d896d3a3-27d1-46dc-a4c8-0c5274b900fe
+  spec:
+    finalizers:
+    - kubernetes
+  status:
+    phase: Active
+- apiVersion: v1
+  kind: Namespace
+  metadata:
+    annotations:
+      openshift.io/description: ""
+      openshift.io/display-name: ""
+      openshift.io/requester: fumbles
+      openshift.io/sa.scc.mcs: s0:c31,c30
+      openshift.io/sa.scc.supplemental-groups: 1000990000/10000
+      openshift.io/sa.scc.uid-range: 1000990000/10000
+      security.openshift.io/MinimallySufficientPodSecurityStandard: restricted
+    creationTimestamp: "2026-05-26T14:43:42Z"
+    labels:
+      dashboard.yamlwrangler.com/enabled: "true"
+      kubernetes.io/metadata.name: policy-reporter
+      pod-security.kubernetes.io/audit: restricted
+      pod-security.kubernetes.io/audit-version: latest
+      pod-security.kubernetes.io/warn: restricted
+      pod-security.kubernetes.io/warn-version: latest
+    name: policy-reporter
+    resourceVersion: "13000698"
+    uid: 87f504c0-472b-4204-84f8-238ff00d6320
+  spec:
+    finalizers:
+    - kubernetes
+  status:
+    phase: Active
+- apiVersion: v1
+  kind: Namespace
+  metadata:
+    annotations:
+      openshift.io/description: ""
+      openshift.io/display-name: ""
+      openshift.io/requester: system:admin
+      openshift.io/sa.scc.mcs: s0:c29,c14
+      openshift.io/sa.scc.supplemental-groups: 1000840000/10000
+      openshift.io/sa.scc.uid-range: 1000840000/10000
+      security.openshift.io/MinimallySufficientPodSecurityStandard: privileged
+    creationTimestamp: "2026-04-29T21:21:11Z"
+    labels:
+      dashboard.yamlwrangler.com/enabled: "true"
+      kubernetes.io/metadata.name: priv
+      pod-security.kubernetes.io/audit: privileged
+      pod-security.kubernetes.io/audit-version: latest
+      pod-security.kubernetes.io/warn: privileged
+      pod-security.kubernetes.io/warn-version: latest
+    name: priv
+    resourceVersion: "3682654"
+    uid: a658d4c1-9c82-4c3c-adb4-a69757ccba74
+  spec:
+    finalizers:
+    - kubernetes
+  status:
+    phase: Active
+- apiVersion: v1
+  kind: Namespace
+  metadata:
+    annotations:
+      openshift.io/description: ""
+      openshift.io/display-name: ""
+      openshift.io/requester: system:admin
+      openshift.io/sa.scc.mcs: s0:c30,c10
+      openshift.io/sa.scc.supplemental-groups: 1000890000/10000
+      openshift.io/sa.scc.uid-range: 1000890000/10000
+      security.openshift.io/MinimallySufficientPodSecurityStandard: restricted
+    creationTimestamp: "2026-04-29T19:49:50Z"
+    labels:
+      dashboard.yamlwrangler.com/enabled: "true"
+      kubernetes.io/metadata.name: public-default
+      pod-security.kubernetes.io/audit: restricted
+      pod-security.kubernetes.io/audit-version: latest
+      pod-security.kubernetes.io/warn: restricted
+      pod-security.kubernetes.io/warn-version: latest
+    name: public-default
+    resourceVersion: "3682935"
+    uid: 80d40f35-d3ce-4e94-82f5-1ca7f2dc7e11
+  spec:
+    finalizers:
+    - kubernetes
+  status:
+    phase: Active
+- apiVersion: v1
+  kind: Namespace
+  metadata:
+    annotations:
+      openshift.io/sa.scc.mcs: s0:c31,c25
+      openshift.io/sa.scc.supplemental-groups: 1000980000/10000
+      openshift.io/sa.scc.uid-range: 1000980000/10000
+      security.openshift.io/MinimallySufficientPodSecurityStandard: privileged
+    creationTimestamp: "2026-05-21T13:17:41Z"
+    labels:
+      dashboard.yamlwrangler.com/enabled: "true"
+      kubernetes.io/metadata.name: super-productivity
+      pod-security.kubernetes.io/audit: privileged
+      pod-security.kubernetes.io/audit-version: latest
+      pod-security.kubernetes.io/warn: privileged
+      pod-security.kubernetes.io/warn-version: latest
+    name: super-productivity
+    resourceVersion: "12683583"
+    uid: a7d9a42f-d995-423a-ba57-64791bcb754c
+  spec:
+    finalizers:
+    - kubernetes
+  status:
+    phase: Active
+- apiVersion: v1
+  kind: Namespace
+  metadata:
+    annotations:
+      openshift.io/sa.scc.mcs: s0:c28,c22
+      openshift.io/sa.scc.supplemental-groups: 1000800000/10000
+      openshift.io/sa.scc.uid-range: 1000800000/10000
+      security.openshift.io/MinimallySufficientPodSecurityStandard: privileged
+    creationTimestamp: "2026-04-29T05:30:39Z"
+    labels:
+      dashboard.yamlwrangler.com/enabled: "true"
+      keel-auto-update: "true"
+      kubernetes.io/metadata.name: twingate
+      pod-security.kubernetes.io/audit: privileged
+      pod-security.kubernetes.io/audit-version: latest
+      pod-security.kubernetes.io/warn: privileged
+      pod-security.kubernetes.io/warn-version: latest
+    name: twingate
+    resourceVersion: "11415144"
+    uid: 5c0f1ffc-064c-4638-8da9-15c9764ce421
+  spec:
+    finalizers:
+    - kubernetes
+  status:
+    phase: Active
+- apiVersion: v1
+  kind: Namespace
+  metadata:
+    annotations:
+      openshift.io/sa.scc.mcs: s0:c30,c20
+      openshift.io/sa.scc.supplemental-groups: 1000910000/10000
+      openshift.io/sa.scc.uid-range: 1000910000/10000
+      security.openshift.io/MinimallySufficientPodSecurityStandard: privileged
+    creationTimestamp: "2026-05-14T16:16:42Z"
+    labels:
+      dashboard.yamlwrangler.com/enabled: "true"
+      kubernetes.io/metadata.name: umami
+      pod-security.kubernetes.io/audit: privileged
+      pod-security.kubernetes.io/audit-version: latest
+      pod-security.kubernetes.io/warn: privileged
+      pod-security.kubernetes.io/warn-version: latest
+    name: umami
+    resourceVersion: "4252405"
+    uid: 572d753f-4928-4055-a17e-9528e857ba42
+  spec:
+    finalizers:
+    - kubernetes
+  status:
+    phase: Active
+kind: List
+metadata:
+  resourceVersion: ""

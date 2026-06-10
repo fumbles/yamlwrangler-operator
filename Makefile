@@ -2,6 +2,7 @@
 # Use TAG environment variable or generate timestamp-based tag
 TAG ?= v1.0.0-$(shell date +%Y%m%d%H%M%S)
 IMG ?= default-route-openshift-image-registry.apps.sno.yamlwrangler.com/app-dashboard-operator/app-dashboard-operator:$(TAG)
+PLUGIN_IMG ?= fumbles/yamlwrangler-dashboard:$(TAG)
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -59,15 +60,23 @@ podman-build: ## Build podman image with the manager.
 podman-push: ## Push podman image with the manager.
 	podman push ${IMG}
 
+.PHONY: plugin-build
+plugin-build: ## Build the console plugin image.
+	podman build -t ${PLUGIN_IMG} console-plugin
+
+.PHONY: plugin-push
+plugin-push: ## Push the console plugin image.
+	podman push ${PLUGIN_IMG}
+
 ##@ Deployment
 
 .PHONY: install
 install: ## Install CRDs into the K8s cluster specified in ~/.kube/config.
-	kubectl apply -f manifests/crd-dashboardappgroup.yaml
+	kubectl apply -f manifests/crds/
 
 .PHONY: uninstall
 uninstall: ## Uninstall CRDs from the K8s cluster specified in ~/.kube/config.
-	kubectl delete -f manifests/crd-dashboardappgroup.yaml
+	kubectl delete -f manifests/crds/
 
 .PHONY: deploy
 deploy: ## Deploy controller to the K8s cluster specified in ~/.kube/config.

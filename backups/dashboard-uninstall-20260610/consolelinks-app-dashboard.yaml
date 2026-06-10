@@ -1,0 +1,24 @@
+apiVersion: v1
+items:
+- apiVersion: console.openshift.io/v1
+  kind: ConsoleLink
+  metadata:
+    creationTimestamp: "2026-06-10T14:07:06Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/managed-by: app-dashboard-operator
+      app.kubernetes.io/name: app-dashboard
+      app.kubernetes.io/part-of: yamlwrangler-dashboard
+    name: app-dashboard-link
+    resourceVersion: "26713007"
+    uid: d419377e-2da5-496f-8ba3-16bc6023db8a
+  spec:
+    applicationMenu:
+      imageURL: data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI5NiIgaGVpZ2h0PSI5NiIgdmlld0JveD0iMCAwIDk2IDk2IiBmaWxsPSJub25lIj4KICA8cmVjdCB4PSI0IiB5PSI0IiB3aWR0aD0iODgiIGhlaWdodD0iODgiIHJ4PSIyNCIgZmlsbD0iIzEyMDkxMiIvPgogIDxyZWN0IHg9IjQuNzUiIHk9IjQuNzUiIHdpZHRoPSI4Ni41IiBoZWlnaHQ9Ijg2LjUiIHJ4PSIyMy4yNSIgc3Ryb2tlPSIjN2YxZDJkIiBzdHJva2Utd2lkdGg9IjEuNSIvPgogIDxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDI0IDI0KSBzY2FsZSgyKSIgc3Ryb2tlPSIjZmI3MTg1IiBzdHJva2Utd2lkdGg9IjIuNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj4KICAgIDxwYXRoIGQ9Ik0yLjk3IDEyLjkyQTIgMiAwIDAgMCAyIDE0LjYzdjMuMjRhMiAyIDAgMCAwIC45NyAxLjcxbDMgMS44YTIgMiAwIDAgMCAyLjA2IDBMMTIgMTl2LTUuNWwtNS0zLTQuMDMgMi40MloiLz4KICAgIDxwYXRoIGQ9Im03IDE2LjUtNC43NC0yLjg1Ii8+CiAgICA8cGF0aCBkPSJtNyAxNi41IDUtMyIvPgogICAgPHBhdGggZD0iTTcgMTYuNXY1LjE3Ii8+CiAgICA8cGF0aCBkPSJNMTIgMTMuNVYxOWwzLjk3IDIuMzhhMiAyIDAgMCAwIDIuMDYgMGwzLTEuOGEyIDIgMCAwIDAgLjk3LTEuNzF2LTMuMjRhMiAyIDAgMCAwLS45Ny0xLjcxTDE3IDEwLjVsLTUgM1oiLz4KICAgIDxwYXRoIGQ9Im0xNyAxNi41LTUtMyIvPgogICAgPHBhdGggZD0ibTE3IDE2LjUgNC43NC0yLjg1Ii8+CiAgICA8cGF0aCBkPSJNMTcgMTYuNXY1LjE3Ii8+CiAgICA8cGF0aCBkPSJNNy45NyA0LjQyQTIgMiAwIDAgMCA3IDYuMTN2NC4zN2w1IDMgNS0zVjYuMTNhMiAyIDAgMCAwLS45Ny0xLjcxbC0zLTEuOGEyIDIgMCAwIDAtMi4wNiAwbC0zIDEuOFoiLz4KICAgIDxwYXRoIGQ9Ik0xMiA4IDcuMjYgNS4xNSIvPgogICAgPHBhdGggZD0ibTEyIDggNC43NC0yLjg1Ii8+CiAgICA8cGF0aCBkPSJNMTIgMTMuNVY4Ii8+CiAgPC9nPgo8L3N2Zz4K
+      section: App Dashboard
+    href: https://console-openshift-console.apps.sno.yamlwrangler.com/app-dashboard
+    location: ApplicationMenu
+    text: App Dashboard
+kind: List
+metadata:
+  resourceVersion: ""

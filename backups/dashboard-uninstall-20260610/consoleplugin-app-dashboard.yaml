@@ -1,0 +1,23 @@
+apiVersion: console.openshift.io/v1
+kind: ConsolePlugin
+metadata:
+  creationTimestamp: "2026-06-10T06:09:40Z"
+  generation: 2
+  labels:
+    app.kubernetes.io/managed-by: app-dashboard-operator
+    app.kubernetes.io/name: app-dashboard
+    app.kubernetes.io/part-of: yamlwrangler-dashboard
+  name: app-dashboard
+  resourceVersion: "26708484"
+  uid: b4f8102f-2fdd-4afc-a08b-7b3d5b4fe3ac
+spec:
+  backend:
+    service:
+      basePath: /
+      name: app-dashboard
+      namespace: app-dashboard
+      port: 9443
+    type: Service
+  displayName: Yamlwrangler App Dashboard
+  i18n:
+    loadType: Preload

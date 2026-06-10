@@ -1,0 +1,167 @@
+apiVersion: v1
+items:
+- apiVersion: v1
+  data:
+    category: Infra
+    description: PiHole on Raspberry Pi .103 host
+    displayName: PiHole
+    url: http://10.80.1.103/admin
+  kind: ConfigMap
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","data":{"category":"Infra","description":"PiHole on Raspberry Pi .103 host","displayName":"PiHole","url":"http://10.80.1.103/admin"},"kind":"ConfigMap","metadata":{"annotations":{},"labels":{"dashboard.yamlwrangler.com/type":"custom-link"},"name":"pihole","namespace":"lab"}}
+    creationTimestamp: "2026-05-11T14:19:16Z"
+    labels:
+      dashboard.yamlwrangler.com/type: custom-link
+    name: pihole
+    namespace: lab
+    resourceVersion: "3323796"
+    uid: ae699b1a-b162-442b-b3b9-94e596c42623
+- apiVersion: v1
+  data:
+    category: Infra
+    description: AT&T Router
+    displayName: AT&T Router
+    url: http://192.168.48.1/cgi-bin/home.ha
+  kind: ConfigMap
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","data":{"category":"Infra","description":"AT\u0026T Router","displayName":"AT\u0026T Router","url":"http://192.168.48.1/cgi-bin/home.ha"},"kind":"ConfigMap","metadata":{"annotations":{},"labels":{"dashboard.yamlwrangler.com/type":"custom-link"},"name":"router","namespace":"lab"}}
+    creationTimestamp: "2026-05-11T14:35:11Z"
+    labels:
+      dashboard.yamlwrangler.com/type: custom-link
+    name: router
+    namespace: lab
+    resourceVersion: "3326278"
+    uid: 10bd411f-e2ba-4724-8b54-89ff5a551140
+- apiVersion: v1
+  data:
+    category: Links
+    description: Wyze Cameras streams
+    displayName: Wyze Cameras
+    url: https://my.wyze.com/live
+  kind: ConfigMap
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","data":{"category":"Links","description":"Wyze Cameras streams","displayName":"Wyze Cameras","url":"https://my.wyze.com/live"},"kind":"ConfigMap","metadata":{"annotations":{},"labels":{"dashboard.yamlwrangler.com/type":"custom-link"},"name":"wyze-cameras","namespace":"media"}}
+    creationTimestamp: "2026-05-12T06:22:00Z"
+    labels:
+      dashboard.yamlwrangler.com/type: custom-link
+    name: wyze-cameras
+    namespace: media
+    resourceVersion: "3486869"
+    uid: d9afb09d-f0cb-4e3b-99e9-61b57f80c8bb
+- apiVersion: v1
+  data:
+    category: Links
+    description: 1337x.to
+    displayName: 1337x.to
+    url: https://1337x.to/
+  kind: ConfigMap
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","data":{"category":"Links","description":"1337x.to","displayName":"1337x.to","url":"https://1337x.to/"},"kind":"ConfigMap","metadata":{"annotations":{},"labels":{"dashboard.yamlwrangler.com/type":"custom-link"},"name":"1337x.to","namespace":"priv"}}
+    creationTimestamp: "2026-05-11T16:31:14Z"
+    labels:
+      dashboard.yamlwrangler.com/type: custom-link
+    name: 1337x.to
+    namespace: priv
+    resourceVersion: "3346004"
+    uid: 55aff453-5d07-4332-823d-d17fc808b015
+- apiVersion: v1
+  data:
+    category: Links
+    description: IPTorrents
+    displayName: IPTorrents
+    url: https://iptorrents.com/login.php
+  kind: ConfigMap
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","data":{"category":"Links","description":"IPTorrents","displayName":"IPTorrents","url":"https://iptorrents.com/login.php"},"kind":"ConfigMap","metadata":{"annotations":{},"labels":{"dashboard.yamlwrangler.com/type":"custom-link"},"name":"iptorrents","namespace":"priv"}}
+    creationTimestamp: "2026-05-11T14:34:10Z"
+    labels:
+      dashboard.yamlwrangler.com/type: custom-link
+    name: iptorrents
+    namespace: priv
+    resourceVersion: "3337751"
+    uid: 602c8a0c-96aa-4613-8e03-be18f1018684
+- apiVersion: v1
+  data:
+    category: Links
+    description: smry.ai
+    displayName: Smry.ai
+    url: https://smry.ai/
+  kind: ConfigMap
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","data":{"category":"Links","description":"smry.ai","displayName":"Smry.ai","url":"https://smry.ai/"},"kind":"ConfigMap","metadata":{"annotations":{},"labels":{"dashboard.yamlwrangler.com/type":"custom-link"},"name":"smry","namespace":"priv"}}
+    creationTimestamp: "2026-05-11T14:32:36Z"
+    labels:
+      dashboard.yamlwrangler.com/type: custom-link
+    name: smry
+    namespace: priv
+    resourceVersion: "3337844"
+    uid: 865e09d5-aaec-4587-9800-6389fb46afa1
+- apiVersion: v1
+  data:
+    category: Private
+    description: Misc Database
+    displayName: Misc-DB
+    url: https://stashdb.org/
+  kind: ConfigMap
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","data":{"category":"Private","description":"Misc Database","displayName":"Misc-DB","url":"https://stashdb.org/"},"kind":"ConfigMap","metadata":{"annotations":{},"labels":{"dashboard.yamlwrangler.com/type":"custom-link"},"name":"stash-db","namespace":"priv"}}
+    creationTimestamp: "2026-05-11T14:31:38Z"
+    labels:
+      dashboard.yamlwrangler.com/type: custom-link
+    name: stash-db
+    namespace: priv
+    resourceVersion: "3325738"
+    uid: 246e8148-9fb0-4834-b17d-2ab4188cfec6
+- apiVersion: v1
+  data:
+    category: Links
+    description: TorrentLeach
+    displayName: TorrentLeach
+    url: https://www.torrentleech.org/
+  kind: ConfigMap
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","data":{"category":"Links","description":"TorrentLeach","displayName":"TorrentLeach","url":"https://www.torrentleech.org/"},"kind":"ConfigMap","metadata":{"annotations":{},"labels":{"dashboard.yamlwrangler.com/type":"custom-link"},"name":"torrentleach","namespace":"priv"}}
+    creationTimestamp: "2026-05-12T06:20:55Z"
+    labels:
+      dashboard.yamlwrangler.com/type: custom-link
+    name: torrentleach
+    namespace: priv
+    resourceVersion: "3486696"
+    uid: 15c708c6-682c-4049-8978-d69318fcd79b
+- apiVersion: v1
+  data:
+    category: Links
+    description: YIFY
+    displayName: YIFY
+    url: https://yts.bz/
+  kind: ConfigMap
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","data":{"category":"Links","description":"YIFY","displayName":"YIFY","url":"https://yts.bz/"},"kind":"ConfigMap","metadata":{"annotations":{},"labels":{"dashboard.yamlwrangler.com/type":"custom-link"},"name":"yify","namespace":"priv"}}
+    creationTimestamp: "2026-05-11T14:33:36Z"
+    labels:
+      dashboard.yamlwrangler.com/type: custom-link
+    name: yify
+    namespace: priv
+    resourceVersion: "3337811"
+    uid: 254e560f-9be3-462b-85aa-bc1af0244355
+kind: List
+metadata:
+  resourceVersion: ""

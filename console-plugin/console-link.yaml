@@ -1,0 +1,13 @@
+apiVersion: console.openshift.io/v1
+kind: ConsoleLink
+metadata:
+  name: app-dashboard-link
+spec:
+  location: ApplicationMenu
+  text: App Dashboard
+  href: https://console-openshift-console.apps.sno.yamlwrangler.com/app-dashboard
+  applicationMenu:
+    section: Red Hat Applications
+    imageURL: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA0OCA0OCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBzdHJva2U9IiMxNTE1MTUiIHN0cm9rZS13aWR0aD0iMiI+PHBhdGggZD0iTTE0IDM0VjE0aDIwdjIwSDE0eiIvPjxwYXRoIGQ9Ik0xMCAzMFYxMGgyMCIgc3Ryb2tlPSIjNkE2QTZBIi8+PHBhdGggZD0iTTYgMjZWNmgyMCIgc3Ryb2tlPSIjRTAwMDAwIi8+PGNpcmNsZSBjeD0iMjgiIGN5PSIxOCIgcj0iMS41IiBmaWxsPSIjRTAwMDAwIiBzdHJva2U9Im5vbmUiLz48Y2lyY2xlIGN4PSIzMiIgY3k9IjE4IiByPSIxLjUiIGZpbGw9IiMwMDY2Q0MiIHN0cm9rZT0ibm9uZSIvPjwvZz48L3N2Zz4="
+
+# Made with Bob

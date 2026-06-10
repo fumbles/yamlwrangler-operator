@@ -8,6 +8,7 @@ rules:
       - dashboard.yamlwrangler.com
     resources:
       - dashboardappgroups
+      - appdashboards
     verbs:
       - get
       - list
@@ -20,6 +21,7 @@ rules:
       - dashboard.yamlwrangler.com
     resources:
       - dashboardappgroups/status
+      - appdashboards/status
     verbs:
       - get
       - update
@@ -28,9 +30,10 @@ rules:
       - dashboard.yamlwrangler.com
     resources:
       - dashboardappgroups/finalizers
+      - appdashboards/finalizers
     verbs:
       - update
-  # Deployments - need to read and update annotations
+  # Deployments - need to read/update app annotations and manage the console plugin workload
   - apiGroups:
       - apps
     resources:
@@ -39,9 +42,10 @@ rules:
       - get
       - list
       - watch
+      - create
       - update
       - patch
-  # Namespaces - need to watch for labeled namespaces
+  # Namespaces - need to watch labeled namespaces and create the console plugin namespace
   - apiGroups:
       - ""
     resources:
@@ -50,10 +54,15 @@ rules:
       - get
       - list
       - watch
-  # ConfigMaps - need to create and watch dashboard configs
+      - create
+      - update
+      - patch
+  # Core resources - need to manage the console plugin workload and dashboard configs
   - apiGroups:
       - ""
     resources:
+      - serviceaccounts
+      - services
       - configmaps
     verbs:
       - get
@@ -63,6 +72,31 @@ rules:
       - update
       - patch
       - delete
+  # OpenShift console plugin resources
+  - apiGroups:
+      - console.openshift.io
+    resources:
+      - consoleplugins
+      - consolelinks
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+  # OpenShift console operator - optionally enable the plugin in spec.plugins
+  - apiGroups:
+      - operator.openshift.io
+    resources:
+      - consoles
+    verbs:
+      - get
+      - list
+      - watch
+      - update
+      - patch
   # Routes - need to read routes for auto-discovery
   - apiGroups:
       - route.openshift.io

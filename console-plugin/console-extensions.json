@@ -1,0 +1,20 @@
+[
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": true,
+      "path": "/app-dashboard",
+      "component": { "$codeRef": "AppDashboardPage" }
+    }
+  },
+  {
+    "type": "console.navigation/href",
+    "properties": {
+      "id": "yamlwrangler-app-dashboard",
+      "name": "App Dashboard",
+      "href": "/app-dashboard",
+      "section": "Home",
+      "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iY3VycmVudENvbG9yIiBkPSJNMTMgM3Y2aDhWM20tOCA4djZoOHYtNm0tMTAgMGg4VjNoLTh2OG0wIDEwaDh2LThoLTh2OFoiLz48L3N2Zz4="
+    }
+  }
+]

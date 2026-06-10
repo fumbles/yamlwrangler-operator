@@ -1,0 +1,58 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "openshift-console-plugin.name" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "openshift-console-plugin.labels" . | nindent 4 }}
+data:
+  nginx.conf: |
+    error_log /dev/stdout info;
+    events {}
+    http {
+      access_log         /dev/stdout;
+      default_type       application/octet-stream;
+      keepalive_timeout  65;
+      
+      # Explicitly define MIME types since include path may not exist
+      types {
+        text/html                             html htm shtml;
+        text/css                              css;
+        text/xml                              xml;
+        image/gif                             gif;
+        image/jpeg                            jpeg jpg;
+        application/javascript                js;
+        application/json                      json;
+        application/woff                      woff;
+        application/woff2                     woff2;
+        font/ttf                              ttf;
+        font/otf                              otf;
+        image/svg+xml                         svg svgz;
+        image/png                             png;
+        image/x-icon                          ico;
+      }
+      
+      server {
+        listen              {{ .Values.plugin.port }} ssl;
+        listen              [::]:{{ .Values.plugin.port }} ssl;
+        ssl_certificate     /var/cert/tls.crt;
+        ssl_certificate_key /var/cert/tls.key;
+        root                /usr/share/nginx/html;
+        
+        # Ensure proper headers for JavaScript modules
+        location ~ \.js$ {
+          add_header Content-Type application/javascript;
+          add_header Cache-Control "public, max-age=31536000, immutable";
+        }
+        
+        location ~ \.json$ {
+          add_header Content-Type application/json;
+        }
+        
+        # Handle plugin manifest
+        location = /plugin-manifest.json {
+          add_header Content-Type application/json;
+          add_header Cache-Control "no-cache";
+        }
+      }
+    }

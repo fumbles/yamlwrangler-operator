@@ -15,7 +15,9 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
 const (
@@ -108,70 +110,145 @@ func (r *NamespaceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		return ctrl.Result{}, err
 	}
 
-	logger.Info("ConfigMap already exists", "namespace", namespace.Name, "configmap", configMapName)
+	updated, err := r.mergeConfigMap(ctx, configMap)
+	if err != nil {
+		logger.Error(err, "Failed to merge generated apps into ConfigMap")
+		return ctrl.Result{}, err
+	}
+	if updated {
+		logger.Info("Updated ConfigMap with newly discovered apps", "namespace", namespace.Name, "configmap", configMapName)
+		return ctrl.Result{}, nil
+	}
+
+	logger.Info("ConfigMap already up to date", "namespace", namespace.Name, "configmap", configMapName)
 	return ctrl.Result{}, nil
 }
 
 // generateConfigMap creates a ConfigMap with auto-discovered apps
 func (r *NamespaceReconciler) generateConfigMap(ctx context.Context, namespaceName string) (*corev1.ConfigMap, error) {
+	config, err := r.discoverNamespaceConfig(ctx, namespaceName)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create ConfigMap
+	configMap := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      ConfigMapNamePrefix + namespaceName,
+			Namespace: namespaceName,
+			Labels: map[string]string{
+				ConfigMapTypeLabel: ConfigMapTypeValue,
+			},
+		},
+		Data: map[string]string{
+			"config.yaml": renderNamespaceConfig(namespaceName, config),
+		},
+	}
+
+	return configMap, nil
+}
+
+func (r *NamespaceReconciler) mergeConfigMap(ctx context.Context, configMap *corev1.ConfigMap) (bool, error) {
+	configYAML := ""
+	if configMap.Data != nil {
+		configYAML = configMap.Data["config.yaml"]
+	}
+
+	existing := NamespaceConfig{Apps: map[string]AppConfig{}}
+	if configYAML != "" {
+		if err := yaml.Unmarshal([]byte(configYAML), &existing); err != nil {
+			return false, fmt.Errorf("failed to parse existing config.yaml: %w", err)
+		}
+	}
+	if existing.Apps == nil {
+		existing.Apps = map[string]AppConfig{}
+	}
+
+	discovered, err := r.discoverNamespaceConfig(ctx, configMap.Namespace)
+	if err != nil {
+		return false, err
+	}
+
+	changed := false
+	for name, discoveredApp := range discovered.Apps {
+		current, found := existing.Apps[name]
+		if !found {
+			existing.Apps[name] = discoveredApp
+			changed = true
+			continue
+		}
+
+		// Fill route information when it was not manually configured yet.
+		if current.PrimaryRoute == "" && discoveredApp.PrimaryRoute != "" {
+			current.PrimaryRoute = discoveredApp.PrimaryRoute
+			existing.Apps[name] = current
+			changed = true
+		}
+	}
+
+	if !changed {
+		return false, nil
+	}
+
+	if configMap.Data == nil {
+		configMap.Data = map[string]string{}
+	}
+	configMap.Data["config.yaml"] = renderNamespaceConfig(configMap.Namespace, existing)
+	if err := r.Update(ctx, configMap); err != nil {
+		return false, fmt.Errorf("failed to update configmap: %w", err)
+	}
+
+	return true, nil
+}
+
+func (r *NamespaceReconciler) discoverNamespaceConfig(ctx context.Context, namespaceName string) (NamespaceConfig, error) {
 	logger := log.FromContext(ctx)
 
-	// List all deployments in namespace
 	deploymentList := &appsv1.DeploymentList{}
 	err := r.List(ctx, deploymentList, client.InNamespace(namespaceName))
 	if err != nil {
-		return nil, fmt.Errorf("failed to list deployments: %w", err)
+		return NamespaceConfig{}, fmt.Errorf("failed to list deployments: %w", err)
 	}
 
-	// List all routes in namespace
 	routeList := &routev1.RouteList{}
 	err = r.List(ctx, routeList, client.InNamespace(namespaceName))
 	if err != nil {
 		logger.Info("Failed to list routes (might not be OpenShift)", "error", err)
-		routeList = &routev1.RouteList{} // Empty list if routes not available
+		routeList = &routev1.RouteList{}
 	}
 
-	// Generate configuration
-	config := NamespaceConfig{
-		Apps: make(map[string]AppConfig),
-	}
-
+	config := NamespaceConfig{Apps: make(map[string]AppConfig)}
 	for _, deployment := range deploymentList.Items {
 		name := deployment.Name
-
-		// Detect if it's a database
 		isDatabase := isDatabase(name)
-
-		// Find matching route
-		routeName := findRouteForDeployment(name, routeList.Items)
-
-		// Detect parent app for databases
 		parentApp := ""
 		if isDatabase {
 			parentApp = detectParentApp(name)
 		}
 
-		// Generate config for this deployment
 		config.Apps[name] = AppConfig{
-			Enabled:      !isDatabase, // Databases disabled by default
+			Enabled:      !isDatabase,
 			DisplayName:  titleCase(name),
 			Category:     guessCategory(name, isDatabase),
 			Description:  generateDescription(name, isDatabase),
-			PrimaryRoute: routeName,
+			PrimaryRoute: findRouteForDeployment(name, routeList.Items),
 			GroupWith:    parentApp,
 		}
 	}
 
-	// Convert config to YAML
+	return config, nil
+}
+
+func renderNamespaceConfig(namespaceName string, config NamespaceConfig) string {
 	configYAML, err := yaml.Marshal(config)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal config: %w", err)
+		return ""
 	}
 
-	// Add header comment
 	header := fmt.Sprintf(`# Auto-generated dashboard configuration for namespace: %s
 # Edit this file to customize how apps appear in the dashboard
-# The operator will apply your changes to deployments automatically
+# The operator preserves existing app entries and appends newly discovered deployments.
+# The operator will apply your changes to deployments automatically.
 #
 # Fields:
 #   enabled: true/false - Show/hide in dashboard
@@ -199,23 +276,7 @@ func (r *NamespaceReconciler) generateConfigMap(ctx context.Context, namespaceNa
 
 `, namespaceName)
 
-	configWithHeader := header + string(configYAML)
-
-	// Create ConfigMap
-	configMap := &corev1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      ConfigMapNamePrefix + namespaceName,
-			Namespace: namespaceName,
-			Labels: map[string]string{
-				ConfigMapTypeLabel: ConfigMapTypeValue,
-			},
-		},
-		Data: map[string]string{
-			"config.yaml": configWithHeader,
-		},
-	}
-
-	return configMap, nil
+	return header + string(configYAML)
 }
 
 // isDatabase checks if a deployment name indicates it's a database
@@ -340,7 +401,20 @@ func titleCase(name string) string {
 func (r *NamespaceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&corev1.Namespace{}).
+		Watches(&appsv1.Deployment{}, handler.EnqueueRequestsFromMapFunc(namespaceRequestForObject)).
+		Watches(&routev1.Route{}, handler.EnqueueRequestsFromMapFunc(namespaceRequestForObject)).
 		Complete(r)
+}
+
+func namespaceRequestForObject(_ context.Context, obj client.Object) []reconcile.Request {
+	namespace := obj.GetNamespace()
+	if namespace == "" {
+		return nil
+	}
+
+	return []reconcile.Request{{
+		NamespacedName: types.NamespacedName{Name: namespace},
+	}}
 }
 
 // Made with Bob

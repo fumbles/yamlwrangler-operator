@@ -1,0 +1,412 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  annotations:
+    alm-examples: |-
+      [
+        {
+          "apiVersion": "dashboard.yamlwrangler.com/v1alpha1",
+          "kind": "AppDashboard",
+          "metadata": {
+            "name": "yamlwrangler"
+          },
+          "spec": {
+            "namespace": "app-dashboard",
+            "pluginName": "app-dashboard",
+            "displayName": "Yamlwrangler App Dashboard",
+            "image": "fumbles/yamlwrangler-dashboard:v1.0.0",
+            "replicas": 2,
+            "enableConsolePlugin": true
+          }
+        }
+      ]
+    capabilities: Basic Install
+    categories: OpenShift Optional
+    containerImage: image-registry.openshift-image-registry.svc:5000/app-dashboard-operator/app-dashboard-operator:v0.1.0
+    createdAt: "2026-06-10T00:00:00Z"
+    description: Installs the Yamlwrangler App Dashboard OpenShift console plugin
+      and discovers applications from labeled namespaces.
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"operators.coreos.com/v1alpha1","kind":"ClusterServiceVersion","metadata":{"annotations":{"alm-examples":"[\n  {\n    \"apiVersion\": \"dashboard.yamlwrangler.com/v1alpha1\",\n    \"kind\": \"AppDashboard\",\n    \"metadata\": {\n      \"name\": \"yamlwrangler\"\n    },\n    \"spec\": {\n      \"namespace\": \"app-dashboard\",\n      \"pluginName\": \"app-dashboard\",\n      \"displayName\": \"Yamlwrangler App Dashboard\",\n      \"image\": \"fumbles/yamlwrangler-dashboard:v1.0.0\",\n      \"replicas\": 2,\n      \"enableConsolePlugin\": true\n    }\n  }\n]","capabilities":"Basic Install","categories":"OpenShift Optional","containerImage":"image-registry.openshift-image-registry.svc:5000/app-dashboard-operator/app-dashboard-operator:v0.1.0","createdAt":"2026-06-10T00:00:00Z","description":"Installs the Yamlwrangler App Dashboard OpenShift console plugin and discovers applications from labeled namespaces.","operators.operatorframework.io/builder":"manual","operators.operatorframework.io/project_layout":"go.kubebuilder.io/v4","repository":"https://github.com/fumbles/yamlwrangler-operator","support":"Yamlwrangler"},"name":"app-dashboard-operator.v0.1.0","namespace":"app-dashboard-operator"},"spec":{"customresourcedefinitions":{"owned":[{"description":"Installs and manages the OpenShift console dashboard plugin.","displayName":"App Dashboard","kind":"AppDashboard","name":"appdashboards.dashboard.yamlwrangler.com","version":"v1alpha1"},{"description":"Selects and groups deployments for dashboard display.","displayName":"Dashboard App Group","kind":"DashboardAppGroup","name":"dashboardappgroups.dashboard.yamlwrangler.com","version":"v1alpha1"}]},"description":"Installs and manages the Yamlwrangler App Dashboard console plugin for OpenShift.","displayName":"Yamlwrangler App Dashboard Operator","icon":[{"base64data":"PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI5NiIgaGVpZ2h0PSI5NiIgdmlld0JveD0iMCAwIDk2IDk2IiBmaWxsPSJub25lIj4KICA8cmVjdCB4PSI0IiB5PSI0IiB3aWR0aD0iODgiIGhlaWdodD0iODgiIHJ4PSIyNCIgZmlsbD0iIzEyMDkxMiIvPgogIDxyZWN0IHg9IjQuNzUiIHk9IjQuNzUiIHdpZHRoPSI4Ni41IiBoZWlnaHQ9Ijg2LjUiIHJ4PSIyMy4yNSIgc3Ryb2tlPSIjN2YxZDJkIiBzdHJva2Utd2lkdGg9IjEuNSIvPgogIDxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDI0IDI0KSBzY2FsZSgyKSIgc3Ryb2tlPSIjZmI3MTg1IiBzdHJva2Utd2lkdGg9IjIuNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj4KICAgIDxwYXRoIGQ9Ik0yLjk3IDEyLjkyQTIgMiAwIDAgMCAyIDE0LjYzdjMuMjRhMiAyIDAgMCAwIC45NyAxLjcxbDMgMS44YTIgMiAwIDAgMCAyLjA2IDBMMTIgMTl2LTUuNWwtNS0zLTQuMDMgMi40MloiLz4KICAgIDxwYXRoIGQ9Im03IDE2LjUtNC43NC0yLjg1Ii8+CiAgICA8cGF0aCBkPSJtNyAxNi41IDUtMyIvPgogICAgPHBhdGggZD0iTTcgMTYuNXY1LjE3Ii8+CiAgICA8cGF0aCBkPSJNMTIgMTMuNVYxOWwzLjk3IDIuMzhhMiAyIDAgMCAwIDIuMDYgMGwzLTEuOGEyIDIgMCAwIDAgLjk3LTEuNzF2LTMuMjRhMiAyIDAgMCAwLS45Ny0xLjcxTDE3IDEwLjVsLTUgM1oiLz4KICAgIDxwYXRoIGQ9Im0xNyAxNi41LTUtMyIvPgogICAgPHBhdGggZD0ibTE3IDE2LjUgNC43NC0yLjg1Ii8+CiAgICA8cGF0aCBkPSJNMTcgMTYuNXY1LjE3Ii8+CiAgICA8cGF0aCBkPSJNNy45NyA0LjQyQTIgMiAwIDAgMCA3IDYuMTN2NC4zN2w1IDMgNS0zVjYuMTNhMiAyIDAgMCAwLS45Ny0xLjcxbC0zLTEuOGEyIDIgMCAwIDAtMi4wNiAwbC0zIDEuOFoiLz4KICAgIDxwYXRoIGQ9Ik0xMiA4IDcuMjYgNS4xNSIvPgogICAgPHBhdGggZD0ibTEyIDggNC43NC0yLjg1Ii8+CiAgICA8cGF0aCBkPSJNMTIgMTMuNVY4Ii8+CiAgPC9nPgo8L3N2Zz4K","mediatype":"image/svg+xml"}],"install":{"spec":{"clusterPermissions":[{"rules":[{"apiGroups":["dashboard.yamlwrangler.com"],"resources":["dashboardappgroups","appdashboards"],"verbs":["get","list","watch","create","update","patch","delete"]},{"apiGroups":["dashboard.yamlwrangler.com"],"resources":["dashboardappgroups/status","appdashboards/status"],"verbs":["get","update","patch"]},{"apiGroups":["dashboard.yamlwrangler.com"],"resources":["dashboardappgroups/finalizers","appdashboards/finalizers"],"verbs":["update"]},{"apiGroups":["apps"],"resources":["deployments"],"verbs":["get","list","watch","create","update","patch"]},{"apiGroups":[""],"resources":["namespaces"],"verbs":["get","list","watch","create","update","patch"]},{"apiGroups":[""],"resources":["serviceaccounts","services","configmaps"],"verbs":["get","list","watch","create","update","patch","delete"]},{"apiGroups":["route.openshift.io"],"resources":["routes"],"verbs":["get","list","watch"]},{"apiGroups":["console.openshift.io"],"resources":["consoleplugins","consolelinks"],"verbs":["get","list","watch","create","update","patch","delete"]},{"apiGroups":["operator.openshift.io"],"resources":["consoles"],"verbs":["get","list","watch","update","patch"]},{"apiGroups":[""],"resources":["events"],"verbs":["create","patch"]},{"apiGroups":["coordination.k8s.io"],"resources":["leases"],"verbs":["get","list","watch","create","update","patch","delete"]}],"serviceAccountName":"app-dashboard-operator"}],"deployments":[{"name":"app-dashboard-operator","spec":{"replicas":1,"selector":{"matchLabels":{"app":"app-dashboard-operator"}},"template":{"metadata":{"labels":{"app":"app-dashboard-operator"}},"spec":{"containers":[{"args":["--leader-elect"],"command":["/manager"],"image":"image-registry.openshift-image-registry.svc:5000/app-dashboard-operator/app-dashboard-operator:v0.1.0","imagePullPolicy":"IfNotPresent","livenessProbe":{"httpGet":{"path":"/healthz","port":"health"},"initialDelaySeconds":15,"periodSeconds":20},"name":"manager","ports":[{"containerPort":8080,"name":"metrics","protocol":"TCP"},{"containerPort":8081,"name":"health","protocol":"TCP"}],"readinessProbe":{"httpGet":{"path":"/readyz","port":"health"},"initialDelaySeconds":5,"periodSeconds":10},"resources":{"limits":{"cpu":"500m","memory":"256Mi"},"requests":{"cpu":"100m","memory":"128Mi"}},"securityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"runAsNonRoot":true,"seccompProfile":{"type":"RuntimeDefault"}}}],"securityContext":{"runAsNonRoot":true},"serviceAccountName":"app-dashboard-operator"}}}}]},"strategy":"deployment"},"installModes":[{"supported":false,"type":"OwnNamespace"},{"supported":false,"type":"SingleNamespace"},{"supported":false,"type":"MultiNamespace"},{"supported":true,"type":"AllNamespaces"}],"keywords":["openshift","console","dashboard","homelab"],"links":[{"name":"Source","url":"https://github.com/fumbles/yamlwrangler-operator"}],"maintainers":[{"email":"noreply@yamlwrangler.com","name":"Daniel Riggins"}],"maturity":"alpha","minKubeVersion":"1.26.0","provider":{"name":"Yamlwrangler"},"version":"0.1.0"}}
+    olm.operatorGroup: app-dashboard-operator
+    olm.operatorNamespace: app-dashboard-operator
+    olm.targetNamespaces: ""
+    operators.operatorframework.io/builder: manual
+    operators.operatorframework.io/project_layout: go.kubebuilder.io/v4
+    repository: https://github.com/fumbles/yamlwrangler-operator
+    support: Yamlwrangler
+  creationTimestamp: "2026-06-10T13:53:29Z"
+  finalizers:
+  - operators.coreos.com/csv-cleanup
+  generation: 5
+  name: app-dashboard-operator.v0.1.0
+  namespace: app-dashboard-operator
+  resourceVersion: "26722802"
+  uid: 609c0153-4273-4971-86a3-d76d6b645aed
+spec:
+  apiservicedefinitions: {}
+  cleanup:
+    enabled: false
+  customresourcedefinitions:
+    owned:
+    - description: Installs and manages the OpenShift console dashboard plugin.
+      displayName: App Dashboard
+      kind: AppDashboard
+      name: appdashboards.dashboard.yamlwrangler.com
+      version: v1alpha1
+    - description: Selects and groups deployments for dashboard display.
+      displayName: Dashboard App Group
+      kind: DashboardAppGroup
+      name: dashboardappgroups.dashboard.yamlwrangler.com
+      version: v1alpha1
+  description: Installs and manages the Yamlwrangler App Dashboard console plugin
+    for OpenShift.
+  displayName: Yamlwrangler App Dashboard Operator
+  icon:
+  - base64data: PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI5NiIgaGVpZ2h0PSI5NiIgdmlld0JveD0iMCAwIDk2IDk2IiBmaWxsPSJub25lIj4KICA8cmVjdCB4PSI0IiB5PSI0IiB3aWR0aD0iODgiIGhlaWdodD0iODgiIHJ4PSIyNCIgZmlsbD0iIzEyMDkxMiIvPgogIDxyZWN0IHg9IjQuNzUiIHk9IjQuNzUiIHdpZHRoPSI4Ni41IiBoZWlnaHQ9Ijg2LjUiIHJ4PSIyMy4yNSIgc3Ryb2tlPSIjN2YxZDJkIiBzdHJva2Utd2lkdGg9IjEuNSIvPgogIDxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDI0IDI0KSBzY2FsZSgyKSIgc3Ryb2tlPSIjZmI3MTg1IiBzdHJva2Utd2lkdGg9IjIuNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj4KICAgIDxwYXRoIGQ9Ik0yLjk3IDEyLjkyQTIgMiAwIDAgMCAyIDE0LjYzdjMuMjRhMiAyIDAgMCAwIC45NyAxLjcxbDMgMS44YTIgMiAwIDAgMCAyLjA2IDBMMTIgMTl2LTUuNWwtNS0zLTQuMDMgMi40MloiLz4KICAgIDxwYXRoIGQ9Im03IDE2LjUtNC43NC0yLjg1Ii8+CiAgICA8cGF0aCBkPSJtNyAxNi41IDUtMyIvPgogICAgPHBhdGggZD0iTTcgMTYuNXY1LjE3Ii8+CiAgICA8cGF0aCBkPSJNMTIgMTMuNVYxOWwzLjk3IDIuMzhhMiAyIDAgMCAwIDIuMDYgMGwzLTEuOGEyIDIgMCAwIDAgLjk3LTEuNzF2LTMuMjRhMiAyIDAgMCAwLS45Ny0xLjcxTDE3IDEwLjVsLTUgM1oiLz4KICAgIDxwYXRoIGQ9Im0xNyAxNi41LTUtMyIvPgogICAgPHBhdGggZD0ibTE3IDE2LjUgNC43NC0yLjg1Ii8+CiAgICA8cGF0aCBkPSJNMTcgMTYuNXY1LjE3Ii8+CiAgICA8cGF0aCBkPSJNNy45NyA0LjQyQTIgMiAwIDAgMCA3IDYuMTN2NC4zN2w1IDMgNS0zVjYuMTNhMiAyIDAgMCAwLS45Ny0xLjcxbC0zLTEuOGEyIDIgMCAwIDAtMi4wNiAwbC0zIDEuOFoiLz4KICAgIDxwYXRoIGQ9Ik0xMiA4IDcuMjYgNS4xNSIvPgogICAgPHBhdGggZD0ibTEyIDggNC43NC0yLjg1Ii8+CiAgICA8cGF0aCBkPSJNMTIgMTMuNVY4Ii8+CiAgPC9nPgo8L3N2Zz4K
+    mediatype: image/svg+xml
+  install:
+    spec:
+      clusterPermissions:
+      - rules:
+        - apiGroups:
+          - dashboard.yamlwrangler.com
+          resources:
+          - dashboardappgroups
+          - appdashboards
+          verbs:
+          - get
+          - list
+          - watch
+          - create
+          - update
+          - patch
+          - delete
+        - apiGroups:
+          - dashboard.yamlwrangler.com
+          resources:
+          - dashboardappgroups/status
+          - appdashboards/status
+          verbs:
+          - get
+          - update
+          - patch
+        - apiGroups:
+          - dashboard.yamlwrangler.com
+          resources:
+          - dashboardappgroups/finalizers
+          - appdashboards/finalizers
+          verbs:
+          - update
+        - apiGroups:
+          - apps
+          resources:
+          - deployments
+          verbs:
+          - get
+          - list
+          - watch
+          - create
+          - update
+          - patch
+        - apiGroups:
+          - ""
+          resources:
+          - namespaces
+          verbs:
+          - get
+          - list
+          - watch
+          - create
+          - update
+          - patch
+        - apiGroups:
+          - ""
+          resources:
+          - serviceaccounts
+          - services
+          - configmaps
+          verbs:
+          - get
+          - list
+          - watch
+          - create
+          - update
+          - patch
+          - delete
+        - apiGroups:
+          - route.openshift.io
+          resources:
+          - routes
+          verbs:
+          - get
+          - list
+          - watch
+        - apiGroups:
+          - console.openshift.io
+          resources:
+          - consoleplugins
+          - consolelinks
+          verbs:
+          - get
+          - list
+          - watch
+          - create
+          - update
+          - patch
+          - delete
+        - apiGroups:
+          - operator.openshift.io
+          resources:
+          - consoles
+          verbs:
+          - get
+          - list
+          - watch
+          - update
+          - patch
+        - apiGroups:
+          - ""
+          resources:
+          - events
+          verbs:
+          - create
+          - patch
+        - apiGroups:
+          - coordination.k8s.io
+          resources:
+          - leases
+          verbs:
+          - get
+          - list
+          - watch
+          - create
+          - update
+          - patch
+          - delete
+        serviceAccountName: app-dashboard-operator
+      deployments:
+      - name: app-dashboard-operator
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              app: app-dashboard-operator
+          template:
+            metadata:
+              labels:
+                app: app-dashboard-operator
+            spec:
+              containers:
+              - args:
+                - --leader-elect
+                command:
+                - /manager
+                image: image-registry.openshift-image-registry.svc:5000/app-dashboard-operator/app-dashboard-operator:v0.1.0
+                imagePullPolicy: IfNotPresent
+                livenessProbe:
+                  httpGet:
+                    path: /healthz
+                    port: health
+                  initialDelaySeconds: 15
+                  periodSeconds: 20
+                name: manager
+                ports:
+                - containerPort: 8080
+                  name: metrics
+                  protocol: TCP
+                - containerPort: 8081
+                  name: health
+                  protocol: TCP
+                readinessProbe:
+                  httpGet:
+                    path: /readyz
+                    port: health
+                  initialDelaySeconds: 5
+                  periodSeconds: 10
+                resources:
+                  limits:
+                    cpu: 500m
+                    memory: 256Mi
+                  requests:
+                    cpu: 100m
+                    memory: 128Mi
+                securityContext:
+                  allowPrivilegeEscalation: false
+                  capabilities:
+                    drop:
+                    - ALL
+                  runAsNonRoot: true
+                  seccompProfile:
+                    type: RuntimeDefault
+              securityContext:
+                runAsNonRoot: true
+              serviceAccountName: app-dashboard-operator
+    strategy: deployment
+  installModes:
+  - supported: false
+    type: OwnNamespace
+  - supported: false
+    type: SingleNamespace
+  - supported: false
+    type: MultiNamespace
+  - supported: true
+    type: AllNamespaces
+  keywords:
+  - openshift
+  - console
+  - dashboard
+  - homelab
+  links:
+  - name: Source
+    url: https://github.com/fumbles/yamlwrangler-operator
+  maintainers:
+  - email: noreply@yamlwrangler.com
+    name: Daniel Riggins
+  maturity: alpha
+  minKubeVersion: 1.26.0
+  provider:
+    name: Yamlwrangler
+  version: 0.1.0
+status:
+  cleanup: {}
+  conditions:
+  - lastTransitionTime: "2026-06-10T13:53:29Z"
+    lastUpdateTime: "2026-06-10T13:53:29Z"
+    message: requirements not yet checked
+    phase: Pending
+    reason: RequirementsUnknown
+  - lastTransitionTime: "2026-06-10T13:53:30Z"
+    lastUpdateTime: "2026-06-10T13:53:30Z"
+    message: all requirements found, attempting install
+    phase: InstallReady
+    reason: AllRequirementsMet
+  - lastTransitionTime: "2026-06-10T13:53:30Z"
+    lastUpdateTime: "2026-06-10T13:53:30Z"
+    message: waiting for install components to report healthy
+    phase: Installing
+    reason: InstallSucceeded
+  - lastTransitionTime: "2026-06-10T13:53:30Z"
+    lastUpdateTime: "2026-06-10T13:53:30Z"
+    message: 'installing: waiting for deployment app-dashboard-operator to become
+      ready: waiting for spec update of deployment "app-dashboard-operator" to be
+      observed...'
+    phase: Installing
+    reason: InstallWaiting
+  - lastTransitionTime: "2026-06-10T13:53:43Z"
+    lastUpdateTime: "2026-06-10T13:53:43Z"
+    message: install strategy completed with no errors
+    phase: Succeeded
+    reason: InstallSucceeded
+  - lastTransitionTime: "2026-06-10T14:21:42Z"
+    lastUpdateTime: "2026-06-10T14:21:42Z"
+    message: |
+      installing: unexpected annotation on deployment. Expected kubectl.kubernetes.io/last-applied-configuration:{"apiVersion":"operators.coreos.com/v1alpha1","kind":"ClusterServiceVersion","metadata":{"annotations":{"alm-examples":"[\n  {\n    \"apiVersion\": \"dashboard.yamlwrangler.com/v1alpha1\",\n    \"kind\": \"AppDashboard\",\n    \"metadata\": {\n      \"name\": \"yamlwrangler\"\n    },\n    \"spec\": {\n      \"namespace\": \"app-dashboard\",\n      \"pluginName\": \"app-dashboard\",\n      \"displayName\": \"Yamlwrangler App Dashboard\",\n      \"image\": \"fumbles/yamlwrangler-dashboard:v1.0.0\",\n      \"replicas\": 2,\n      \"enableConsolePlugin\": true\n    }\n  }\n]","capabilities":"Basic Install","categories":"OpenShift Optional","containerImage":"image-registry.openshift-image-registry.svc:5000/app-dashboard-operator/app-dashboard-operator:v0.1.0","createdAt":"2026-06-10T00:00:00Z","description":"Installs the Yamlwrangler App Dashboard OpenShift console plugin and discovers applications from labeled namespaces.","operators.operatorframework.io/builder":"manual","operators.operatorframework.io/project_layout":"go.kubebuilder.io/v4","repository":"https://github.com/fumbles/yamlwrangler-operator","support":"Yamlwrangler"},"name":"app-dashboard-operator.v0.1.0","namespace":"app-dashboard-operator"},"spec":{"customresourcedefinitions":{"owned":[{"description":"Installs and manages the OpenShift console dashboard plugin.","displayName":"App Dashboard","kind":"AppDashboard","name":"appdashboards.dashboard.yamlwrangler.com","version":"v1alpha1"},{"description":"Selects and groups deployments for dashboard display.","displayName":"Dashboard App Group","kind":"DashboardAppGroup","name":"dashboardappgroups.dashboard.yamlwrangler.com","version":"v1alpha1"}]},"description":"Installs and manages the Yamlwrangler App Dashboard console plugin for OpenShift.","displayName":"Yamlwrangler App Dashboard Operator","icon":[{"base64data":"PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI5NiIgaGVpZ2h0PSI5NiIgdmlld0JveD0iMCAwIDk2IDk2IiBmaWxsPSJub25lIj4KICA8cmVjdCB4PSI0IiB5PSI0IiB3aWR0aD0iODgiIGhlaWdodD0iODgiIHJ4PSIyNCIgZmlsbD0iIzEyMDkxMiIvPgogIDxyZWN0IHg9IjQuNzUiIHk9IjQuNzUiIHdpZHRoPSI4Ni41IiBoZWlnaHQ9Ijg2LjUiIHJ4PSIyMy4yNSIgc3Ryb2tlPSIjN2YxZDJkIiBzdHJva2Utd2lkdGg9IjEuNSIvPgogIDxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDI0IDI0KSBzY2FsZSgyKSIgc3Ryb2tlPSIjZmI3MTg1IiBzdHJva2Utd2lkdGg9IjIuNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj4KICAgIDxwYXRoIGQ9Ik0yLjk3IDEyLjkyQTIgMiAwIDAgMCAyIDE0LjYzdjMuMjRhMiAyIDAgMCAwIC45NyAxLjcxbDMgMS44YTIgMiAwIDAgMCAyLjA2IDBMMTIgMTl2LTUuNWwtNS0zLTQuMDMgMi40MloiLz4KICAgIDxwYXRoIGQ9Im03IDE2LjUtNC43NC0yLjg1Ii8+CiAgICA8cGF0aCBkPSJtNyAxNi41IDUtMyIvPgogICAgPHBhdGggZD0iTTcgMTYuNXY1LjE3Ii8+CiAgICA8cGF0aCBkPSJNMTIgMTMuNVYxOWwzLjk3IDIuMzhhMiAyIDAgMCAwIDIuMDYgMGwzLTEuOGEyIDIgMCAwIDAgLjk3LTEuNzF2LTMuMjRhMiAyIDAgMCAwLS45Ny0xLjcxTDE3IDEwLjVsLTUgM1oiLz4KICAgIDxwYXRoIGQ9Im0xNyAxNi41LTUtMyIvPgogICAgPHBhdGggZD0ibTE3IDE2LjUgNC43NC0yLjg1Ii8+CiAgICA8cGF0aCBkPSJNMTcgMTYuNXY1LjE3Ii8+CiAgICA8cGF0aCBkPSJNNy45NyA0LjQyQTIgMiAwIDAgMCA3IDYuMTN2NC4zN2w1IDMgNS0zVjYuMTNhMiAyIDAgMCAwLS45Ny0xLjcxbC0zLTEuOGEyIDIgMCAwIDAtMi4wNiAwbC0zIDEuOFoiLz4KICAgIDxwYXRoIGQ9Ik0xMiA4IDcuMjYgNS4xNSIvPgogICAgPHBhdGggZD0ibTEyIDggNC43NC0yLjg1Ii8+CiAgICA8cGF0aCBkPSJNMTIgMTMuNVY4Ii8+CiAgPC9nPgo8L3N2Zz4K","mediatype":"image/svg+xml"}],"install":{"spec":{"clusterPermissions":[{"rules":[{"apiGroups":["dashboard.yamlwrangler.com"],"resources":["dashboardappgroups","appdashboards"],"verbs":["get","list","watch","create","update","patch","delete"]},{"apiGroups":["dashboard.yamlwrangler.com"],"resources":["dashboardappgroups/status","appdashboards/status"],"verbs":["get","update","patch"]},{"apiGroups":["dashboard.yamlwrangler.com"],"resources":["dashboardappgroups/finalizers","appdashboards/finalizers"],"verbs":["update"]},{"apiGroups":["apps"],"resources":["deployments"],"verbs":["get","list","watch","create","update","patch"]},{"apiGroups":[""],"resources":["namespaces"],"verbs":["get","list","watch","create","update","patch"]},{"apiGroups":[""],"resources":["serviceaccounts","services","configmaps"],"verbs":["get","list","watch","create","update","patch","delete"]},{"apiGroups":["route.openshift.io"],"resources":["routes"],"verbs":["get","list","watch"]},{"apiGroups":["console.openshift.io"],"resources":["consoleplugins","consolelinks"],"verbs":["get","list","watch","create","update","patch","delete"]},{"apiGroups":["operator.openshift.io"],"resources":["consoles"],"verbs":["get","list","watch","update","patch"]},{"apiGroups":[""],"resources":["events"],"verbs":["create","patch"]},{"apiGroups":["coordination.k8s.io"],"resources":["leases"],"verbs":["get","list","watch","create","update","patch","delete"]}],"serviceAccountName":"app-dashboard-operator"}],"deployments":[{"name":"app-dashboard-operator","spec":{"replicas":1,"selector":{"matchLabels":{"app":"app-dashboard-operator"}},"template":{"metadata":{"labels":{"app":"app-dashboard-operator"}},"spec":{"containers":[{"args":["--leader-elect"],"command":["/manager"],"image":"image-registry.openshift-image-registry.svc:5000/app-dashboard-operator/app-dashboard-operator:v0.1.0","imagePullPolicy":"IfNotPresent","livenessProbe":{"httpGet":{"path":"/healthz","port":"health"},"initialDelaySeconds":15,"periodSeconds":20},"name":"manager","ports":[{"containerPort":8080,"name":"metrics","protocol":"TCP"},{"containerPort":8081,"name":"health","protocol":"TCP"}],"readinessProbe":{"httpGet":{"path":"/readyz","port":"health"},"initialDelaySeconds":5,"periodSeconds":10},"resources":{"limits":{"cpu":"500m","memory":"256Mi"},"requests":{"cpu":"100m","memory":"128Mi"}},"securityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"runAsNonRoot":true,"seccompProfile":{"type":"RuntimeDefault"}}}],"securityContext":{"runAsNonRoot":true},"serviceAccountName":"app-dashboard-operator"}}}}]},"strategy":"deployment"},"installModes":[{"supported":false,"type":"OwnNamespace"},{"supported":false,"type":"SingleNamespace"},{"supported":false,"type":"MultiNamespace"},{"supported":true,"type":"AllNamespaces"}],"keywords":["openshift","console","dashboard","homelab"],"links":[{"name":"Source","url":"https://github.com/fumbles/yamlwrangler-operator"}],"maintainers":[{"email":"noreply@yamlwrangler.com","name":"Daniel Riggins"}],"maturity":"alpha","minKubeVersion":"1.26.0","provider":{"name":"Yamlwrangler"},"version":"0.1.0"}}
+      , found kubectl.kubernetes.io/last-applied-configuration:{"apiVersion":"operators.coreos.com/v1alpha1","kind":"ClusterServiceVersion","metadata":{"annotations":{"alm-examples":"[\n  {\n    \"apiVersion\": \"dashboard.yamlwrangler.com/v1alpha1\",\n    \"kind\": \"AppDashboard\",\n    \"metadata\": {\n      \"name\": \"yamlwrangler\"\n    },\n    \"spec\": {\n      \"namespace\": \"app-dashboard\",\n      \"pluginName\": \"app-dashboard\",\n      \"displayName\": \"Yamlwrangler App Dashboard\",\n      \"image\": \"fumbles/yamlwrangler-dashboard:v1.0.0\",\n      \"replicas\": 2,\n      \"enableConsolePlugin\": true\n    }\n  }\n]","capabilities":"Basic Install","categories":"OpenShift Optional","containerImage":"image-registry.openshift-image-registry.svc:5000/app-dashboard-operator/app-dashboard-operator:v0.1.0","createdAt":"2026-06-10T00:00:00Z","description":"Installs the Yamlwrangler App Dashboard OpenShift console plugin and discovers applications from labeled namespaces.","operators.operatorframework.io/builder":"manual","operators.operatorframework.io/project_layout":"go.kubebuilder.io/v4","repository":"https://github.com/fumbles/yamlwrangler-operator","support":"Yamlwrangler"},"name":"app-dashboard-operator.v0.1.0","namespace":"app-dashboard-operator"},"spec":{"customresourcedefinitions":{"owned":[{"description":"Installs and manages the OpenShift console dashboard plugin.","displayName":"App Dashboard","kind":"AppDashboard","name":"appdashboards.dashboard.yamlwrangler.com","version":"v1alpha1"},{"description":"Selects and groups deployments for dashboard display.","displayName":"Dashboard App Group","kind":"DashboardAppGroup","name":"dashboardappgroups.dashboard.yamlwrangler.com","version":"v1alpha1"}]},"description":"Installs and manages the Yamlwrangler App Dashboard console plugin for OpenShift.","displayName":"Yamlwrangler App Dashboard Operator","install":{"spec":{"clusterPermissions":[{"rules":[{"apiGroups":["dashboard.yamlwrangler.com"],"resources":["dashboardappgroups","appdashboards"],"verbs":["get","list","watch","create","update","patch","delete"]},{"apiGroups":["dashboard.yamlwrangler.com"],"resources":["dashboardappgroups/status","appdashboards/status"],"verbs":["get","update","patch"]},{"apiGroups":["dashboard.yamlwrangler.com"],"resources":["dashboardappgroups/finalizers","appdashboards/finalizers"],"verbs":["update"]},{"apiGroups":["apps"],"resources":["deployments"],"verbs":["get","list","watch","create","update","patch"]},{"apiGroups":[""],"resources":["namespaces"],"verbs":["get","list","watch","create","update","patch"]},{"apiGroups":[""],"resources":["serviceaccounts","services","configmaps"],"verbs":["get","list","watch","create","update","patch","delete"]},{"apiGroups":["route.openshift.io"],"resources":["routes"],"verbs":["get","list","watch"]},{"apiGroups":["console.openshift.io"],"resources":["consoleplugins","consolelinks"],"verbs":["get","list","watch","create","update","patch","delete"]},{"apiGroups":["operator.openshift.io"],"resources":["consoles"],"verbs":["get","list","watch","update","patch"]},{"apiGroups":[""],"resources":["events"],"verbs":["create","patch"]},{"apiGroups":["coordination.k8s.io"],"resources":["leases"],"verbs":["get","list","watch","create","update","patch","delete"]}],"serviceAccountName":"app-dashboard-operator"}],"deployments":[{"name":"app-dashboard-operator","spec":{"replicas":1,"selector":{"matchLabels":{"app":"app-dashboard-operator"}},"template":{"metadata":{"labels":{"app":"app-dashboard-operator"}},"spec":{"containers":[{"args":["--leader-elect"],"command":["/manager"],"image":"image-registry.openshift-image-registry.svc:5000/app-dashboard-operator/app-dashboard-operator:v0.1.0","imagePullPolicy":"IfNotPresent","livenessProbe":{"httpGet":{"path":"/healthz","port":"health"},"initialDelaySeconds":15,"periodSeconds":20},"name":"manager","ports":[{"containerPort":8080,"name":"metrics","protocol":"TCP"},{"containerPort":8081,"name":"health","protocol":"TCP"}],"readinessProbe":{"httpGet":{"path":"/readyz","port":"health"},"initialDelaySeconds":5,"periodSeconds":10},"resources":{"limits":{"cpu":"500m","memory":"256Mi"},"requests":{"cpu":"100m","memory":"128Mi"}},"securityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"runAsNonRoot":true,"seccompProfile":{"type":"RuntimeDefault"}}}],"securityContext":{"runAsNonRoot":true},"serviceAccountName":"app-dashboard-operator"}}}}]},"strategy":"deployment"},"installModes":[{"supported":false,"type":"OwnNamespace"},{"supported":false,"type":"SingleNamespace"},{"supported":false,"type":"MultiNamespace"},{"supported":true,"type":"AllNamespaces"}],"keywords":["openshift","console","dashboard","homelab"],"links":[{"name":"Source","url":"https://github.com/fumbles/yamlwrangler-operator"}],"maintainers":[{"email":"noreply@yamlwrangler.com","name":"Daniel Higgins"}],"maturity":"alpha","minKubeVersion":"1.26.0","provider":{"name":"Yamlwrangler"},"version":"0.1.0"}}
+    phase: InstallReady
+    reason: ComponentUnhealthy
+  - lastTransitionTime: "2026-06-10T14:21:42Z"
+    lastUpdateTime: "2026-06-10T14:21:42Z"
+    message: waiting for install components to report healthy
+    phase: Installing
+    reason: InstallSucceeded
+  - lastTransitionTime: "2026-06-10T14:21:42Z"
+    lastUpdateTime: "2026-06-10T14:21:43Z"
+    message: 'installing: waiting for deployment app-dashboard-operator to become
+      ready: deployment "app-dashboard-operator" waiting for 1 outdated replica(s)
+      to be terminated'
+    phase: Installing
+    reason: InstallWaiting
+  - lastTransitionTime: "2026-06-10T14:21:55Z"
+    lastUpdateTime: "2026-06-10T14:21:55Z"
+    message: install strategy completed with no errors
+    phase: Succeeded
+    reason: InstallSucceeded
+  lastTransitionTime: "2026-06-10T14:21:55Z"
+  lastUpdateTime: "2026-06-10T14:21:55Z"
+  message: install strategy completed with no errors
+  phase: Succeeded
+  reason: InstallSucceeded
+  requirementStatus:
+  - group: operators.coreos.com
+    kind: ClusterServiceVersion
+    message: CSV minKubeVersion (1.26.0) less than server version (v1.34.8)
+    name: app-dashboard-operator.v0.1.0
+    status: Present
+    version: v1alpha1
+  - group: apiextensions.k8s.io
+    kind: CustomResourceDefinition
+    message: CRD is present and Established condition is true
+    name: appdashboards.dashboard.yamlwrangler.com
+    status: Present
+    uuid: 2fe57164-eedf-4f3e-adab-466303371bc3
+    version: v1
+  - group: apiextensions.k8s.io
+    kind: CustomResourceDefinition
+    message: CRD is present and Established condition is true
+    name: dashboardappgroups.dashboard.yamlwrangler.com
+    status: Present
+    uuid: 3518d53f-d48a-4c72-8cdd-a41d66bbf90e
+    version: v1
+  - dependents:
+    - group: rbac.authorization.k8s.io
+      kind: PolicyRule
+      message: cluster rule:{"verbs":["get","list","watch","create","update","patch","delete"],"apiGroups":["dashboard.yamlwrangler.com"],"resources":["dashboardappgroups","appdashboards"]}
+      status: Satisfied
+      version: v1
+    - group: rbac.authorization.k8s.io
+      kind: PolicyRule
+      message: cluster rule:{"verbs":["get","update","patch"],"apiGroups":["dashboard.yamlwrangler.com"],"resources":["dashboardappgroups/status","appdashboards/status"]}
+      status: Satisfied
+      version: v1
+    - group: rbac.authorization.k8s.io
+      kind: PolicyRule
+      message: cluster rule:{"verbs":["update"],"apiGroups":["dashboard.yamlwrangler.com"],"resources":["dashboardappgroups/finalizers","appdashboards/finalizers"]}
+      status: Satisfied
+      version: v1
+    - group: rbac.authorization.k8s.io
+      kind: PolicyRule
+      message: cluster rule:{"verbs":["get","list","watch","create","update","patch"],"apiGroups":["apps"],"resources":["deployments"]}
+      status: Satisfied
+      version: v1
+    - group: rbac.authorization.k8s.io
+      kind: PolicyRule
+      message: cluster rule:{"verbs":["get","list","watch","create","update","patch"],"apiGroups":[""],"resources":["namespaces"]}
+      status: Satisfied
+      version: v1
+    - group: rbac.authorization.k8s.io
+      kind: PolicyRule
+      message: cluster rule:{"verbs":["get","list","watch","create","update","patch","delete"],"apiGroups":[""],"resources":["serviceaccounts","services","configmaps"]}
+      status: Satisfied
+      version: v1
+    - group: rbac.authorization.k8s.io
+      kind: PolicyRule
+      message: cluster rule:{"verbs":["get","list","watch"],"apiGroups":["route.openshift.io"],"resources":["routes"]}
+      status: Satisfied
+      version: v1
+    - group: rbac.authorization.k8s.io
+      kind: PolicyRule
+      message: cluster rule:{"verbs":["get","list","watch","create","update","patch","delete"],"apiGroups":["console.openshift.io"],"resources":["consoleplugins","consolelinks"]}
+      status: Satisfied
+      version: v1
+    - group: rbac.authorization.k8s.io
+      kind: PolicyRule
+      message: cluster rule:{"verbs":["get","list","watch","update","patch"],"apiGroups":["operator.openshift.io"],"resources":["consoles"]}
+      status: Satisfied
+      version: v1
+    - group: rbac.authorization.k8s.io
+      kind: PolicyRule
+      message: cluster rule:{"verbs":["create","patch"],"apiGroups":[""],"resources":["events"]}
+      status: Satisfied
+      version: v1
+    - group: rbac.authorization.k8s.io
+      kind: PolicyRule
+      message: cluster rule:{"verbs":["get","list","watch","create","update","patch","delete"],"apiGroups":["coordination.k8s.io"],"resources":["leases"]}
+      status: Satisfied
+      version: v1
+    group: ""
+    kind: ServiceAccount
+    message: ""
+    name: app-dashboard-operator
+    status: Present
+    version: v1

@@ -1,0 +1,129 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: appdashboards.dashboard.yamlwrangler.com
+spec:
+  group: dashboard.yamlwrangler.com
+  scope: Cluster
+  names:
+    plural: appdashboards
+    singular: appdashboard
+    kind: AppDashboard
+    shortNames:
+      - ad
+      - ads
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      additionalPrinterColumns:
+        - name: Plugin
+          type: string
+          jsonPath: .status.pluginName
+        - name: Namespace
+          type: string
+          jsonPath: .status.namespace
+        - name: Age
+          type: date
+          jsonPath: .metadata.creationTimestamp
+      subresources:
+        status: {}
+      schema:
+        openAPIV3Schema:
+          type: object
+          description: AppDashboard installs and manages the OpenShift console dashboard plugin.
+          properties:
+            apiVersion:
+              type: string
+            kind:
+              type: string
+            metadata:
+              type: object
+            spec:
+              type: object
+              properties:
+                namespace:
+                  type: string
+                  description: Namespace where the console plugin workload is installed.
+                pluginName:
+                  type: string
+                  description: ConsolePlugin name and workload base name.
+                displayName:
+                  type: string
+                  description: Display name shown in the OpenShift console plugin list.
+                image:
+                  type: string
+                  description: Console plugin image to deploy.
+                imagePullPolicy:
+                  type: string
+                  enum:
+                    - Always
+                    - IfNotPresent
+                    - Never
+                replicas:
+                  type: integer
+                  format: int32
+                  minimum: 0
+                port:
+                  type: integer
+                  format: int32
+                  minimum: 1
+                  maximum: 65535
+                basePath:
+                  type: string
+                enableConsolePlugin:
+                  type: boolean
+                  description: Add this plugin to the cluster Console operator spec.plugins list.
+                consoleLink:
+                  type: object
+                  description: ApplicationMenu ConsoleLink. Defaults to enabled when omitted.
+                  properties:
+                    enabled:
+                      type: boolean
+                      description: Create the ApplicationMenu ConsoleLink. Defaults to true when omitted.
+                    name:
+                      type: string
+                    text:
+                      type: string
+                    href:
+                      type: string
+                      description: ConsoleLink target. May be an absolute https URL or a console-relative path.
+                    section:
+                      type: string
+                    imageURL:
+                      type: string
+            status:
+              type: object
+              properties:
+                observedGeneration:
+                  type: integer
+                  format: int64
+                namespace:
+                  type: string
+                pluginName:
+                  type: string
+                conditions:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - lastTransitionTime
+                      - message
+                      - reason
+                      - status
+                      - type
+                    properties:
+                      type:
+                        type: string
+                      status:
+                        type: string
+                      observedGeneration:
+                        type: integer
+                        format: int64
+                      lastTransitionTime:
+                        type: string
+                        format: date-time
+                      reason:
+                        type: string
+                      message:
+                        type: string

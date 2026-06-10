@@ -7,21 +7,74 @@
 
 A Kubernetes operator that automatically manages application discovery and configuration for the App Dashboard Console Plugin.
 
+## Consolidated Operator Flow
+
+This repository now contains both the operator and the OpenShift console plugin source under `console-plugin/`.
+
+The intended install model is:
+
+1. Install the CRDs.
+2. Deploy the operator.
+3. Create an `AppDashboard` CR.
+4. Label namespaces for app discovery.
+
+```bash
+make install
+make deploy
+kubectl apply -f manifests/samples/appdashboard.yaml
+oc label namespace media dashboard.yamlwrangler.com/enabled=true
+```
+
+The `AppDashboard` CR reconciles the console plugin workload, `ConsolePlugin`, optional `ConsoleLink`, and optional Console operator plugin enablement.
+
+Default namespaces:
+
+- Operator: `app-dashboard-operator`
+- Dashboard/plugin workload: `app-dashboard`
+
+To install through OLM so OpenShift reports the operator with `oc get operator -n app-dashboard-operator`, use:
+
+```bash
+./build-and-deploy.sh v0.1.0 --olm
+```
+
+To remove the current raw install before testing the OLM path:
+
+```bash
+oc delete appdashboard yamlwrangler --ignore-not-found
+PLUGINS=$(oc get console.operator.openshift.io cluster -o json | jq -c '.spec.plugins // [] | map(select(. != "app-dashboard"))')
+oc patch console.operator.openshift.io cluster --type merge -p "{\"spec\":{\"plugins\":${PLUGINS}}}"
+oc delete consoleplugin app-dashboard --ignore-not-found
+oc delete consolelink app-dashboard-link --ignore-not-found
+oc delete namespace app-dashboard-operator app-dashboard app-dashboard-plugin --ignore-not-found
+oc delete clusterrole app-dashboard-operator app-dashboard-patcher --ignore-not-found
+oc delete clusterrolebinding app-dashboard-operator app-dashboard-patcher --ignore-not-found
+```
+
+This keeps the dashboard CRDs in place so existing `DashboardAppGroup` resources are not deleted. For a full purge, also delete:
+
+```bash
+oc delete crd appdashboards.dashboard.yamlwrangler.com dashboardappgroups.dashboard.yamlwrangler.com
+```
+
 ## Overview
 
-The App Dashboard Operator provides two main controllers:
+The App Dashboard Operator provides four main controllers:
 
-1. **Namespace Controller**: Watches labeled namespaces and auto-generates ConfigMaps with all deployments
-2. **ConfigMap Controller**: Processes ConfigMaps to resolve route names to full URLs for custom links
-	 - Labels deployments so the Dashboard can pick them up in the UI
+1. **AppDashboard Controller**: Installs and manages the OpenShift console plugin from an `AppDashboard` CR
+2. **Namespace Controller**: Watches labeled namespaces, deployments, and routes, then generates or merges app ConfigMaps
+3. **ConfigMap Controller**: Processes ConfigMaps to resolve route names to full URLs for custom links
+   - Labels deployments so the Dashboard can pick them up in the UI
+4. **DashboardAppGroup Controller**: Selects and groups deployments from a namespaced CR
+
 ## Features
 
 - **Automatic Discovery**: Label a namespace and all deployments are automatically discovered
 - **ConfigMap Generation**: Creates `dashboard-config-<namespace>` ConfigMaps with deployment templates
+- **Event-driven Updates**: New deployments and routes in labeled namespaces are merged into the existing ConfigMap
 - **Route Resolution**: Automatically resolves OpenShift route names to full URLs
 - **Custom Links**: Support for multiple routes per deployment (sidecars, additional services)
 - **Description Field**: Custom descriptions for each custom link
-- **Real-time Updates**: Watches for changes and updates ConfigMaps automatically
 
 ## Screenshots
 
@@ -58,7 +111,7 @@ metadata:
   name: dashboard-config-media
   namespace: media
 data:
-  apps.yaml: |
+  config.yaml: |
     # App configuration for media namespace
     
     plex:
@@ -205,7 +258,7 @@ oc get events -n app-dashboard-operator --sort-by='.lastTimestamp'
 ### ConfigMap Controller
 
 1. Watches ConfigMaps with name pattern `dashboard-config-*`
-2. Parses the `apps.yaml` data
+2. Parses the `config.yaml` data
 3. For each app with `customLinks`:
    - If `route` field is present, looks up the OpenShift route
    - Resolves route to full URL (with protocol)
@@ -218,7 +271,7 @@ oc get events -n app-dashboard-operator --sort-by='.lastTimestamp'
 
 ```yaml
 data:
-  apps.yaml: |
+  config.yaml: |
     <deployment-name>:
       enabled: true|false
       displayName: string
@@ -375,7 +428,7 @@ The operator requires these permissions:
 │  │ Namespace Controller │      │ ConfigMap Controller │    │
 │  │                      │      │                      │    │
 │  │ • Watch namespaces   │      │ • Watch ConfigMaps   │    │
-│  │ • List deployments   │      │ • Parse apps.yaml    │    │
+│  │ • List deployments   │      │ • Parse config.yaml  │    │
 │  │ • Create ConfigMaps  │      │ • Resolve routes     │    │
 │  │ • Generate templates │      │ • Update URLs        │    │
 │  └──────────────────────┘      └──────────────────────┘    │
@@ -402,5 +455,3 @@ The operator requires these permissions:
 ## License
 
 Apache 2.0
-
-

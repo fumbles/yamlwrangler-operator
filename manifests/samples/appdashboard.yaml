@@ -1,0 +1,17 @@
+apiVersion: dashboard.yamlwrangler.com/v1alpha1
+kind: AppDashboard
+metadata:
+  name: yamlwrangler
+spec:
+  namespace: app-dashboard
+  pluginName: app-dashboard
+  displayName: Yamlwrangler App Dashboard
+  image: fumbles/yamlwrangler-dashboard:v1.0.0
+  replicas: 2
+  enableConsolePlugin: true
+  consoleLink:
+    enabled: true
+    name: app-dashboard-link
+    text: App Dashboard
+    href: /app-dashboard
+    section: App Dashboard

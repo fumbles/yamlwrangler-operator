@@ -1,0 +1,169 @@
+{
+  "apiVersion": "v1",
+  "items": [
+    {
+      "apiVersion": "v1",
+      "data": {
+        "category": "Infra",
+        "description": "PiHole on Raspberry Pi .103 host",
+        "displayName": "PiHole",
+        "url": "http://10.80.1.103/admin"
+      },
+      "kind": "ConfigMap",
+      "metadata": {
+        "annotations": {},
+        "labels": {
+          "dashboard.yamlwrangler.com/type": "custom-link"
+        },
+        "name": "pihole",
+        "namespace": "lab"
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "data": {
+        "category": "Infra",
+        "description": "AT&T Router",
+        "displayName": "AT&T Router",
+        "url": "http://192.168.48.1/cgi-bin/home.ha"
+      },
+      "kind": "ConfigMap",
+      "metadata": {
+        "annotations": {},
+        "labels": {
+          "dashboard.yamlwrangler.com/type": "custom-link"
+        },
+        "name": "router",
+        "namespace": "lab"
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "data": {
+        "category": "Links",
+        "description": "Wyze Cameras streams",
+        "displayName": "Wyze Cameras",
+        "url": "https://my.wyze.com/live"
+      },
+      "kind": "ConfigMap",
+      "metadata": {
+        "annotations": {},
+        "labels": {
+          "dashboard.yamlwrangler.com/type": "custom-link"
+        },
+        "name": "wyze-cameras",
+        "namespace": "media"
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "data": {
+        "category": "Links",
+        "description": "1337x.to",
+        "displayName": "1337x.to",
+        "url": "https://1337x.to/"
+      },
+      "kind": "ConfigMap",
+      "metadata": {
+        "annotations": {},
+        "labels": {
+          "dashboard.yamlwrangler.com/type": "custom-link"
+        },
+        "name": "1337x.to",
+        "namespace": "priv"
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "data": {
+        "category": "Links",
+        "description": "IPTorrents",
+        "displayName": "IPTorrents",
+        "url": "https://iptorrents.com/login.php"
+      },
+      "kind": "ConfigMap",
+      "metadata": {
+        "annotations": {},
+        "labels": {
+          "dashboard.yamlwrangler.com/type": "custom-link"
+        },
+        "name": "iptorrents",
+        "namespace": "priv"
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "data": {
+        "category": "Links",
+        "description": "smry.ai",
+        "displayName": "Smry.ai",
+        "url": "https://smry.ai/"
+      },
+      "kind": "ConfigMap",
+      "metadata": {
+        "annotations": {},
+        "labels": {
+          "dashboard.yamlwrangler.com/type": "custom-link"
+        },
+        "name": "smry",
+        "namespace": "priv"
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "data": {
+        "category": "Private",
+        "description": "Misc Database",
+        "displayName": "Misc-DB",
+        "url": "https://stashdb.org/"
+      },
+      "kind": "ConfigMap",
+      "metadata": {
+        "annotations": {},
+        "labels": {
+          "dashboard.yamlwrangler.com/type": "custom-link"
+        },
+        "name": "stash-db",
+        "namespace": "priv"
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "data": {
+        "category": "Links",
+        "description": "TorrentLeach",
+        "displayName": "TorrentLeach",
+        "url": "https://www.torrentleech.org/"
+      },
+      "kind": "ConfigMap",
+      "metadata": {
+        "annotations": {},
+        "labels": {
+          "dashboard.yamlwrangler.com/type": "custom-link"
+        },
+        "name": "torrentleach",
+        "namespace": "priv"
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "data": {
+        "category": "Links",
+        "description": "YIFY",
+        "displayName": "YIFY",
+        "url": "https://yts.bz/"
+      },
+      "kind": "ConfigMap",
+      "metadata": {
+        "annotations": {},
+        "labels": {
+          "dashboard.yamlwrangler.com/type": "custom-link"
+        },
+        "name": "yify",
+        "namespace": "priv"
+      }
+    }
+  ],
+  "kind": "List",
+  "metadata": {}
+}
