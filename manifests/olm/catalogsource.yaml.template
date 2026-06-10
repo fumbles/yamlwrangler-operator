@@ -1,0 +1,13 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: app-dashboard-operator-catalog
+  namespace: app-dashboard-operator
+spec:
+  displayName: app-dashboard-operator catalog
+  image: image-registry.openshift-image-registry.svc:5000/app-dashboard-operator/app-dashboard-operator-catalog:v0.1.0
+  publisher: Yamlwrangler
+  sourceType: grpc
+  updateStrategy:
+    registryPoll:
+      interval: 10m

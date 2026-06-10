@@ -1,0 +1,254 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  name: app-dashboard-operator.v0.1.0
+  namespace: app-dashboard-operator
+  annotations:
+    alm-examples: |-
+      [
+        {
+          "apiVersion": "dashboard.yamlwrangler.com/v1alpha1",
+          "kind": "AppDashboard",
+          "metadata": {
+            "name": "yamlwrangler"
+          },
+          "spec": {
+            "namespace": "app-dashboard",
+            "pluginName": "app-dashboard",
+            "displayName": "Yamlwrangler App Dashboard",
+            "image": "fumbles/yamlwrangler-dashboard:v1.0.0",
+            "replicas": 2,
+            "enableConsolePlugin": true
+          }
+        }
+      ]
+    capabilities: Basic Install
+    categories: OpenShift Optional
+    containerImage: fumbles/yamlwrangler-operator:v1.0.0
+    createdAt: "2026-06-10T00:00:00Z"
+    description: Installs the Yamlwrangler App Dashboard OpenShift console plugin and discovers applications from labeled namespaces.
+    operators.operatorframework.io/builder: manual
+    operators.operatorframework.io/project_layout: go.kubebuilder.io/v4
+    repository: https://github.com/fumbles/yamlwrangler-operator
+    support: Yamlwrangler
+spec:
+  displayName: Yamlwrangler App Dashboard Operator
+  description: Installs and manages the Yamlwrangler App Dashboard console plugin for OpenShift.
+  icon:
+    - base64data: PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI5NiIgaGVpZ2h0PSI5NiIgdmlld0JveD0iMCAwIDk2IDk2IiBmaWxsPSJub25lIj4KICA8cmVjdCB4PSI0IiB5PSI0IiB3aWR0aD0iODgiIGhlaWdodD0iODgiIHJ4PSIyNCIgZmlsbD0iIzEyMDkxMiIvPgogIDxyZWN0IHg9IjQuNzUiIHk9IjQuNzUiIHdpZHRoPSI4Ni41IiBoZWlnaHQ9Ijg2LjUiIHJ4PSIyMy4yNSIgc3Ryb2tlPSIjN2YxZDJkIiBzdHJva2Utd2lkdGg9IjEuNSIvPgogIDxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDI0IDI0KSBzY2FsZSgyKSIgc3Ryb2tlPSIjZmI3MTg1IiBzdHJva2Utd2lkdGg9IjIuNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj4KICAgIDxwYXRoIGQ9Ik0yLjk3IDEyLjkyQTIgMiAwIDAgMCAyIDE0LjYzdjMuMjRhMiAyIDAgMCAwIC45NyAxLjcxbDMgMS44YTIgMiAwIDAgMCAyLjA2IDBMMTIgMTl2LTUuNWwtNS0zLTQuMDMgMi40MloiLz4KICAgIDxwYXRoIGQ9Im03IDE2LjUtNC43NC0yLjg1Ii8+CiAgICA8cGF0aCBkPSJtNyAxNi41IDUtMyIvPgogICAgPHBhdGggZD0iTTcgMTYuNXY1LjE3Ii8+CiAgICA8cGF0aCBkPSJNMTIgMTMuNVYxOWwzLjk3IDIuMzhhMiAyIDAgMCAwIDIuMDYgMGwzLTEuOGEyIDIgMCAwIDAgLjk3LTEuNzF2LTMuMjRhMiAyIDAgMCAwLS45Ny0xLjcxTDE3IDEwLjVsLTUgM1oiLz4KICAgIDxwYXRoIGQ9Im0xNyAxNi41LTUtMyIvPgogICAgPHBhdGggZD0ibTE3IDE2LjUgNC43NC0yLjg1Ii8+CiAgICA8cGF0aCBkPSJNMTcgMTYuNXY1LjE3Ii8+CiAgICA8cGF0aCBkPSJNNy45NyA0LjQyQTIgMiAwIDAgMCA3IDYuMTN2NC4zN2w1IDMgNS0zVjYuMTNhMiAyIDAgMCAwLS45Ny0xLjcxbC0zLTEuOGEyIDIgMCAwIDAtMi4wNiAwbC0zIDEuOFoiLz4KICAgIDxwYXRoIGQ9Ik0xMiA4IDcuMjYgNS4xNSIvPgogICAgPHBhdGggZD0ibTEyIDggNC43NC0yLjg1Ii8+CiAgICA8cGF0aCBkPSJNMTIgMTMuNVY4Ii8+CiAgPC9nPgo8L3N2Zz4K
+      mediatype: image/svg+xml
+  maturity: alpha
+  version: 0.1.0
+  minKubeVersion: 1.26.0
+  provider:
+    name: Yamlwrangler
+  keywords:
+    - openshift
+    - console
+    - dashboard
+    - homelab
+  links:
+    - name: Source
+      url: https://github.com/fumbles/yamlwrangler-operator
+  maintainers:
+    - name: Daniel Riggins
+      email: noreply@yamlwrangler.com
+  installModes:
+    - type: OwnNamespace
+      supported: false
+    - type: SingleNamespace
+      supported: false
+    - type: MultiNamespace
+      supported: false
+    - type: AllNamespaces
+      supported: true
+  customresourcedefinitions:
+    owned:
+      - name: appdashboards.dashboard.yamlwrangler.com
+        version: v1alpha1
+        kind: AppDashboard
+        displayName: App Dashboard
+        description: Installs and manages the OpenShift console dashboard plugin.
+      - name: dashboardappgroups.dashboard.yamlwrangler.com
+        version: v1alpha1
+        kind: DashboardAppGroup
+        displayName: Dashboard App Group
+        description: Selects and groups deployments for dashboard display.
+  install:
+    strategy: deployment
+    spec:
+      clusterPermissions:
+        - serviceAccountName: app-dashboard-operator
+          rules:
+            - apiGroups:
+                - dashboard.yamlwrangler.com
+              resources:
+                - dashboardappgroups
+                - appdashboards
+              verbs:
+                - get
+                - list
+                - watch
+                - create
+                - update
+                - patch
+                - delete
+            - apiGroups:
+                - dashboard.yamlwrangler.com
+              resources:
+                - dashboardappgroups/status
+                - appdashboards/status
+              verbs:
+                - get
+                - update
+                - patch
+            - apiGroups:
+                - dashboard.yamlwrangler.com
+              resources:
+                - dashboardappgroups/finalizers
+                - appdashboards/finalizers
+              verbs:
+                - update
+            - apiGroups:
+                - apps
+              resources:
+                - deployments
+              verbs:
+                - get
+                - list
+                - watch
+                - create
+                - update
+                - patch
+            - apiGroups:
+                - ""
+              resources:
+                - namespaces
+              verbs:
+                - get
+                - list
+                - watch
+                - create
+                - update
+                - patch
+            - apiGroups:
+                - ""
+              resources:
+                - serviceaccounts
+                - services
+                - configmaps
+              verbs:
+                - get
+                - list
+                - watch
+                - create
+                - update
+                - patch
+                - delete
+            - apiGroups:
+                - route.openshift.io
+              resources:
+                - routes
+              verbs:
+                - get
+                - list
+                - watch
+            - apiGroups:
+                - console.openshift.io
+              resources:
+                - consoleplugins
+                - consolelinks
+              verbs:
+                - get
+                - list
+                - watch
+                - create
+                - update
+                - patch
+                - delete
+            - apiGroups:
+                - operator.openshift.io
+              resources:
+                - consoles
+              verbs:
+                - get
+                - list
+                - watch
+                - update
+                - patch
+            - apiGroups:
+                - ""
+              resources:
+                - events
+              verbs:
+                - create
+                - patch
+            - apiGroups:
+                - coordination.k8s.io
+              resources:
+                - leases
+              verbs:
+                - get
+                - list
+                - watch
+                - create
+                - update
+                - patch
+                - delete
+      deployments:
+        - name: app-dashboard-operator
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                app: app-dashboard-operator
+            template:
+              metadata:
+                labels:
+                  app: app-dashboard-operator
+              spec:
+                serviceAccountName: app-dashboard-operator
+                containers:
+                  - name: manager
+                    image: fumbles/yamlwrangler-operator:v1.0.0
+                    imagePullPolicy: IfNotPresent
+                    command:
+                      - /manager
+                    args:
+                      - --leader-elect
+                    ports:
+                      - containerPort: 8080
+                        name: metrics
+                        protocol: TCP
+                      - containerPort: 8081
+                        name: health
+                        protocol: TCP
+                    livenessProbe:
+                      httpGet:
+                        path: /healthz
+                        port: health
+                      initialDelaySeconds: 15
+                      periodSeconds: 20
+                    readinessProbe:
+                      httpGet:
+                        path: /readyz
+                        port: health
+                      initialDelaySeconds: 5
+                      periodSeconds: 10
+                    resources:
+                      limits:
+                        cpu: 500m
+                        memory: 256Mi
+                      requests:
+                        cpu: 100m
+                        memory: 128Mi
+                    securityContext:
+                      allowPrivilegeEscalation: false
+                      capabilities:
+                        drop:
+                          - ALL
+                      runAsNonRoot: true
+                      seccompProfile:
+                        type: RuntimeDefault
+                securityContext:
+                  runAsNonRoot: true

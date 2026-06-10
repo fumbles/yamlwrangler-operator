@@ -8,6 +8,7 @@ import (
 	"time"
 
 	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -43,6 +44,8 @@ type DashboardAppGroupReconciler struct {
 // +kubebuilder:rbac:groups=dashboard.yamlwrangler.com,resources=dashboardappgroups/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=dashboard.yamlwrangler.com,resources=dashboardappgroups/finalizers,verbs=update
 // +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;update;patch
+// +kubebuilder:rbac:groups="",resources=namespaces,verbs=get;list;watch;update;patch
+// +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch;create;update;patch
 
 // Reconcile is part of the main kubernetes reconciliation loop
 func (r *DashboardAppGroupReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
@@ -59,6 +62,20 @@ func (r *DashboardAppGroupReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		}
 		// Error reading the object
 		logger.Error(err, "Failed to get DashboardAppGroup")
+		return ctrl.Result{}, err
+	}
+
+	// Ensure namespace is labeled for dashboard discovery
+	err = r.ensureNamespaceLabeled(ctx, appGroup.Namespace)
+	if err != nil {
+		logger.Error(err, "Failed to label namespace")
+		return ctrl.Result{}, err
+	}
+
+	// Ensure ConfigMap exists for this namespace
+	err = r.ensureConfigMapExists(ctx, appGroup.Namespace)
+	if err != nil {
+		logger.Error(err, "Failed to ensure ConfigMap exists")
 		return ctrl.Result{}, err
 	}
 
@@ -282,6 +299,89 @@ func matchesLabels(deploymentLabels, selectorLabels map[string]string) bool {
 		}
 	}
 	return true
+}
+
+// ensureNamespaceLabeled ensures the namespace has the dashboard enabled label
+func (r *DashboardAppGroupReconciler) ensureNamespaceLabeled(ctx context.Context, namespaceName string) error {
+	logger := log.FromContext(ctx)
+
+	namespace := &corev1.Namespace{}
+	err := r.Get(ctx, types.NamespacedName{Name: namespaceName}, namespace)
+	if err != nil {
+		return fmt.Errorf("failed to get namespace: %w", err)
+	}
+
+	// Check if already labeled
+	if namespace.Labels != nil && namespace.Labels[NamespaceEnabledLabel] == "true" {
+		logger.Info("Namespace already labeled for dashboard", "namespace", namespaceName)
+		return nil
+	}
+
+	// Initialize labels if nil
+	if namespace.Labels == nil {
+		namespace.Labels = make(map[string]string)
+	}
+
+	// Add the label
+	namespace.Labels[NamespaceEnabledLabel] = "true"
+
+	err = r.Update(ctx, namespace)
+	if err != nil {
+		return fmt.Errorf("failed to update namespace labels: %w", err)
+	}
+
+	logger.Info("Successfully labeled namespace for dashboard", "namespace", namespaceName)
+	return nil
+}
+
+// ensureConfigMapExists ensures the dashboard ConfigMap exists for the namespace
+func (r *DashboardAppGroupReconciler) ensureConfigMapExists(ctx context.Context, namespaceName string) error {
+	logger := log.FromContext(ctx)
+
+	configMapName := ConfigMapNamePrefix + namespaceName
+	configMap := &corev1.ConfigMap{}
+	err := r.Get(ctx, types.NamespacedName{Name: configMapName, Namespace: namespaceName}, configMap)
+
+	if err == nil {
+		// ConfigMap already exists
+		logger.Info("ConfigMap already exists", "namespace", namespaceName, "configmap", configMapName)
+		return nil
+	}
+
+	if !errors.IsNotFound(err) {
+		return fmt.Errorf("failed to check for ConfigMap: %w", err)
+	}
+
+	// ConfigMap doesn't exist, create it
+	// We'll use the NamespaceReconciler's logic to generate the ConfigMap
+	// For now, create a basic ConfigMap that will be populated by the NamespaceReconciler
+	logger.Info("Creating ConfigMap for namespace", "namespace", namespaceName, "configmap", configMapName)
+
+	newConfigMap := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      configMapName,
+			Namespace: namespaceName,
+			Labels: map[string]string{
+				ConfigMapTypeLabel: ConfigMapTypeValue,
+			},
+		},
+		Data: map[string]string{
+			"config.yaml": fmt.Sprintf(`# Dashboard configuration for namespace: %s
+# This ConfigMap will be automatically populated by the operator
+# Edit this file to customize how apps appear in the dashboard
+
+apps: {}
+`, namespaceName),
+		},
+	}
+
+	err = r.Create(ctx, newConfigMap)
+	if err != nil {
+		return fmt.Errorf("failed to create ConfigMap: %w", err)
+	}
+
+	logger.Info("Successfully created ConfigMap", "namespace", namespaceName, "configmap", configMapName)
+	return nil
 }
 
 // SetupWithManager sets up the controller with the Manager.

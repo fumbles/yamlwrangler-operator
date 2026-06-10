@@ -1,0 +1,48 @@
+apiVersion: dashboard.yamlwrangler.com/v1alpha1
+kind: DashboardAppGroup
+metadata:
+  name: media-apps
+  namespace: media
+spec:
+  displayName: Media Applications
+  category: Media
+  description: Media management and streaming applications
+  autoLabel: true
+  selector:
+    # Match deployments by regex pattern
+    matchPattern: "^(plex|sonarr|radarr|prowlarr).*"
+    # Or match by explicit names
+    # matchNames:
+    #   - plex-wl
+    #   - sonarr-wl
+    #   - radarr-wl
+    # Or match by labels
+    # matchLabels:
+    #   app.kubernetes.io/part-of: media-stack
+  # Optional: specify the primary route for the group
+  primaryRoute: plex
+  # Optional: add custom links
+  customLinks:
+    - name: Plex Admin
+      url: https://app.plex.tv/desktop
+      icon: ExternalLinkAltIcon
+---
+apiVersion: dashboard.yamlwrangler.com/v1alpha1
+kind: DashboardAppGroup
+metadata:
+  name: plane-app
+  namespace: plane
+spec:
+  displayName: Plane Project Management
+  category: Development
+  description: Open source project management tool
+  autoLabel: true
+  selector:
+    matchPattern: "^plane-.*"
+  primaryRoute: plane-web
+  customLinks:
+    - name: Documentation
+      url: https://docs.plane.so
+      icon: BookIcon
+
+# Made with Bob
