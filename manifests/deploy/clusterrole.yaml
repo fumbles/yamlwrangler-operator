@@ -9,6 +9,8 @@ rules:
     resources:
       - dashboardappgroups
       - appdashboards
+      - dashboardnamespaceconfigs
+      - dashboardlinks
     verbs:
       - get
       - list
@@ -22,6 +24,8 @@ rules:
     resources:
       - dashboardappgroups/status
       - appdashboards/status
+      - dashboardnamespaceconfigs/status
+      - dashboardlinks/status
     verbs:
       - get
       - update
@@ -31,6 +35,8 @@ rules:
     resources:
       - dashboardappgroups/finalizers
       - appdashboards/finalizers
+      - dashboardnamespaceconfigs/finalizers
+      - dashboardlinks/finalizers
     verbs:
       - update
   # Deployments - need to read/update app annotations and manage the console plugin workload

@@ -4,18 +4,24 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"reflect"
 
 	routev1 "github.com/openshift/api/route/v1"
 	"gopkg.in/yaml.v2"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+
+	dashboardv1alpha1 "github.com/yamlwrangler/app-dashboard-operator/api/v1alpha1"
 )
+
+const ImportedFromConfigMapAnnotation = "dashboard.yamlwrangler.com/imported-from-configmap"
 
 // ConfigMapReconciler reconciles dashboard ConfigMaps
 type ConfigMapReconciler struct {
@@ -24,6 +30,7 @@ type ConfigMapReconciler struct {
 }
 
 // +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch
+// +kubebuilder:rbac:groups=dashboard.yamlwrangler.com,resources=dashboardnamespaceconfigs;dashboardlinks,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;update;patch
 // +kubebuilder:rbac:groups=route.openshift.io,resources=routes,verbs=get;list;watch
 
@@ -41,8 +48,16 @@ func (r *ConfigMapReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		return ctrl.Result{}, err
 	}
 
-	// Check if this is a dashboard config ConfigMap
-	if configMap.Labels[ConfigMapTypeLabel] != ConfigMapTypeValue {
+	configMapType := configMap.Labels[ConfigMapTypeLabel]
+	if configMapType == ConfigMapTypeCustomLinkValue {
+		if err := r.syncDashboardLinkFromCustomLinkConfigMap(ctx, configMap); err != nil {
+			logger.Error(err, "Failed to sync DashboardLink from custom-link ConfigMap")
+			return ctrl.Result{}, err
+		}
+		return ctrl.Result{}, nil
+	}
+
+	if configMapType != ConfigMapTypeValue {
 		return ctrl.Result{}, nil
 	}
 
@@ -59,6 +74,14 @@ func (r *ConfigMapReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	err = yaml.Unmarshal([]byte(configYAML), &config)
 	if err != nil {
 		logger.Error(err, "Failed to parse config.yaml")
+		return ctrl.Result{}, err
+	}
+	if config.Apps == nil {
+		config.Apps = map[string]AppConfig{}
+	}
+
+	if err := r.syncOperandsFromConfigMap(ctx, configMap, config); err != nil {
+		logger.Error(err, "Failed to sync dashboard operands from ConfigMap")
 		return ctrl.Result{}, err
 	}
 
@@ -79,6 +102,134 @@ func (r *ConfigMapReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 
 	logger.Info("Successfully processed ConfigMap", "namespace", configMap.Namespace, "apps", len(config.Apps))
 	return ctrl.Result{}, nil
+}
+
+func (r *ConfigMapReconciler) syncOperandsFromConfigMap(ctx context.Context, configMap *corev1.ConfigMap, config NamespaceConfig) error {
+	if err := r.syncDashboardNamespaceConfig(ctx, configMap, config); err != nil {
+		return err
+	}
+	return r.syncDashboardLinks(ctx, configMap, config)
+}
+
+func (r *ConfigMapReconciler) syncDashboardNamespaceConfig(ctx context.Context, configMap *corev1.ConfigMap, config NamespaceConfig) error {
+	name := configMap.Name
+	desiredSpec := dashboardv1alpha1.DashboardNamespaceConfigSpec{
+		Enabled:       true,
+		DiscoveryMode: "None",
+		Apps:          namespaceConfigToDashboardApps(config),
+	}
+
+	current := &dashboardv1alpha1.DashboardNamespaceConfig{}
+	err := r.Get(ctx, types.NamespacedName{Name: name, Namespace: configMap.Namespace}, current)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			return r.Create(ctx, &dashboardv1alpha1.DashboardNamespaceConfig{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:        name,
+					Namespace:   configMap.Namespace,
+					Labels:      importedOperandLabels(),
+					Annotations: importedConfigMapAnnotations(configMap),
+				},
+				Spec: desiredSpec,
+			})
+		}
+		return err
+	}
+
+	if current.Annotations[ImportedFromConfigMapAnnotation] != configMap.Name {
+		return nil
+	}
+
+	changed := false
+	if !reflect.DeepEqual(current.Spec, desiredSpec) {
+		current.Spec = desiredSpec
+		changed = true
+	}
+	changed = ensureImportedConfigMapMetadata(current, configMap) || changed
+	if !changed {
+		return nil
+	}
+
+	return r.Update(ctx, current)
+}
+
+func (r *ConfigMapReconciler) syncDashboardLinks(ctx context.Context, configMap *corev1.ConfigMap, config NamespaceConfig) error {
+	desiredNames := map[string]struct{}{}
+
+	for appName, appConfig := range config.Apps {
+		for _, link := range appConfig.CustomLinks {
+			if link.Name == "" || (link.URL == "" && link.Route == "") {
+				continue
+			}
+
+			name := importedDashboardLinkName(appName, link.Name)
+			desiredNames[name] = struct{}{}
+			desiredSpec := dashboardv1alpha1.DashboardLinkSpec{
+				App:         appName,
+				Name:        link.Name,
+				URL:         link.URL,
+				Route:       link.Route,
+				Description: link.Description,
+			}
+			if err := r.upsertImportedDashboardLink(ctx, configMap, name, desiredSpec); err != nil {
+				return err
+			}
+		}
+	}
+
+	linkList := &dashboardv1alpha1.DashboardLinkList{}
+	if err := r.List(ctx, linkList, client.InNamespace(configMap.Namespace)); err != nil {
+		return err
+	}
+	for i := range linkList.Items {
+		link := &linkList.Items[i]
+		if link.Annotations[ImportedFromConfigMapAnnotation] != configMap.Name {
+			continue
+		}
+		if _, found := desiredNames[link.Name]; found {
+			continue
+		}
+		if err := r.Delete(ctx, link); err != nil && !errors.IsNotFound(err) {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (r *ConfigMapReconciler) upsertImportedDashboardLink(ctx context.Context, configMap *corev1.ConfigMap, name string, desiredSpec dashboardv1alpha1.DashboardLinkSpec) error {
+	current := &dashboardv1alpha1.DashboardLink{}
+	err := r.Get(ctx, types.NamespacedName{Name: name, Namespace: configMap.Namespace}, current)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			return r.Create(ctx, &dashboardv1alpha1.DashboardLink{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:        name,
+					Namespace:   configMap.Namespace,
+					Labels:      importedOperandLabels(),
+					Annotations: importedConfigMapAnnotations(configMap),
+				},
+				Spec: desiredSpec,
+			})
+		}
+		return err
+	}
+
+	if current.Annotations[ImportedFromConfigMapAnnotation] != configMap.Name {
+		return nil
+	}
+
+	changed := false
+	if !reflect.DeepEqual(current.Spec, desiredSpec) {
+		current.Spec = desiredSpec
+		changed = true
+	}
+	changed = ensureImportedConfigMapMetadata(current, configMap) || changed
+	if !changed {
+		return nil
+	}
+
+	return r.Update(ctx, current)
 }
 
 // applyConfigToDeployment applies configuration to a single deployment
@@ -166,7 +317,9 @@ func (r *ConfigMapReconciler) applyConfigToDeployment(ctx context.Context, names
 			}
 		}
 
-		if len(resolvedLinks) > 0 {
+		if len(resolvedLinks) == 0 {
+			delete(deployment.Annotations, AnnotationCustomLinks)
+		} else {
 			linksJSON, err := json.Marshal(resolvedLinks)
 			if err != nil {
 				logger.Error(err, "Failed to marshal custom links", "deployment", deploymentName)
@@ -174,6 +327,8 @@ func (r *ConfigMapReconciler) applyConfigToDeployment(ctx context.Context, names
 				deployment.Annotations[AnnotationCustomLinks] = string(linksJSON)
 			}
 		}
+	} else {
+		delete(deployment.Annotations, AnnotationCustomLinks)
 	}
 
 	// Update the deployment

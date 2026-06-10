@@ -1,0 +1,130 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: dashboardnamespaceconfigs.dashboard.yamlwrangler.com
+spec:
+  group: dashboard.yamlwrangler.com
+  names:
+    kind: DashboardNamespaceConfig
+    listKind: DashboardNamespaceConfigList
+    plural: dashboardnamespaceconfigs
+    shortNames:
+      - dnc
+      - dncs
+    singular: dashboardnamespaceconfig
+  scope: Namespaced
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      subresources:
+        status: {}
+      additionalPrinterColumns:
+        - name: ConfigMap
+          type: string
+          jsonPath: .status.configMapName
+        - name: Apps
+          type: integer
+          jsonPath: .status.appCount
+        - name: Age
+          type: date
+          jsonPath: .metadata.creationTimestamp
+      schema:
+        openAPIV3Schema:
+          type: object
+          description: DashboardNamespaceConfig manages dashboard-config ConfigMaps for a namespace.
+          properties:
+            apiVersion:
+              type: string
+            kind:
+              type: string
+            metadata:
+              type: object
+            spec:
+              type: object
+              properties:
+                enabled:
+                  type: boolean
+                  default: true
+                  description: Labels the namespace for dashboard discovery when true.
+                discoveryMode:
+                  type: string
+                  default: Merge
+                  enum:
+                    - Merge
+                    - Replace
+                    - None
+                    - merge
+                    - replace
+                    - none
+                  description: Controls how discovered deployments are merged into the generated ConfigMap.
+                apps:
+                  type: object
+                  additionalProperties:
+                    type: object
+                    properties:
+                      enabled:
+                        type: boolean
+                      displayName:
+                        type: string
+                      category:
+                        type: string
+                      description:
+                        type: string
+                      primaryRoute:
+                        type: string
+                      groupWith:
+                        type: string
+                      customLinks:
+                        type: array
+                        items:
+                          type: object
+                          x-kubernetes-validations:
+                            - rule: "has(self.url) || has(self.route)"
+                              message: "either url or route is required"
+                          required:
+                            - name
+                          properties:
+                            name:
+                              type: string
+                            url:
+                              type: string
+                            route:
+                              type: string
+                            description:
+                              type: string
+            status:
+              type: object
+              properties:
+                observedGeneration:
+                  type: integer
+                  format: int64
+                configMapName:
+                  type: string
+                appCount:
+                  type: integer
+                conditions:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - lastTransitionTime
+                      - message
+                      - reason
+                      - status
+                      - type
+                    properties:
+                      type:
+                        type: string
+                      status:
+                        type: string
+                      observedGeneration:
+                        type: integer
+                        format: int64
+                      lastTransitionTime:
+                        type: string
+                        format: date-time
+                      reason:
+                        type: string
+                      message:
+                        type: string

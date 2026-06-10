@@ -298,6 +298,16 @@ properties:
       group: dashboard.yamlwrangler.com
       kind: DashboardAppGroup
       version: v1alpha1
+  - type: olm.gvk
+    value:
+      group: dashboard.yamlwrangler.com
+      kind: DashboardNamespaceConfig
+      version: v1alpha1
+  - type: olm.gvk
+    value:
+      group: dashboard.yamlwrangler.com
+      kind: DashboardLink
+      version: v1alpha1
 relatedImages:
   - name: operator
     image: ${OPERATOR_CLUSTER_IMAGE}
@@ -373,7 +383,9 @@ else
   echo "Waiting for CRDs to be established..."
   kubectl wait --for condition=established --timeout=60s \
     crd/appdashboards.dashboard.yamlwrangler.com \
-    crd/dashboardappgroups.dashboard.yamlwrangler.com
+    crd/dashboardappgroups.dashboard.yamlwrangler.com \
+    crd/dashboardnamespaceconfigs.dashboard.yamlwrangler.com \
+    crd/dashboardlinks.dashboard.yamlwrangler.com
   echo "✓ CRDs are established"
 
   kubectl apply -f manifests/deploy/

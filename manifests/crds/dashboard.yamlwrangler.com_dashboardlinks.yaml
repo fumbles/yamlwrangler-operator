@@ -1,0 +1,101 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: dashboardlinks.dashboard.yamlwrangler.com
+spec:
+  group: dashboard.yamlwrangler.com
+  names:
+    kind: DashboardLink
+    listKind: DashboardLinkList
+    plural: dashboardlinks
+    shortNames:
+      - dl
+      - dlinks
+    singular: dashboardlink
+  scope: Namespaced
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      subresources:
+        status: {}
+      additionalPrinterColumns:
+        - name: App
+          type: string
+          jsonPath: .spec.app
+        - name: Link
+          type: string
+          jsonPath: .spec.name
+        - name: Age
+          type: date
+          jsonPath: .metadata.creationTimestamp
+      schema:
+        openAPIV3Schema:
+          type: object
+          description: DashboardLink adds or updates one custom link in a namespace dashboard config.
+          properties:
+            apiVersion:
+              type: string
+            kind:
+              type: string
+            metadata:
+              type: object
+            spec:
+              type: object
+              x-kubernetes-validations:
+                - rule: "has(self.url) || has(self.route)"
+                  message: "either url or route is required"
+              required:
+                - app
+                - name
+              properties:
+                app:
+                  type: string
+                  description: Deployment/app key in dashboard-config-<namespace>.
+                name:
+                  type: string
+                  description: Display name for the link.
+                category:
+                  type: string
+                  description: Dashboard category for standalone custom links.
+                url:
+                  type: string
+                  description: Absolute external URL. Use either url or route.
+                route:
+                  type: string
+                  description: OpenShift Route name in the same namespace.
+                description:
+                  type: string
+            status:
+              type: object
+              properties:
+                observedGeneration:
+                  type: integer
+                  format: int64
+                configMapName:
+                  type: string
+                conditions:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - lastTransitionTime
+                      - message
+                      - reason
+                      - status
+                      - type
+                    properties:
+                      type:
+                        type: string
+                      status:
+                        type: string
+                      observedGeneration:
+                        type: integer
+                        format: int64
+                      lastTransitionTime:
+                        type: string
+                        format: date-time
+                      reason:
+                        type: string
+                      message:
+                        type: string

@@ -59,6 +59,7 @@ type NamespaceConfig struct {
 
 // +kubebuilder:rbac:groups="",resources=namespaces,verbs=get;list;watch
 // +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=dashboard.yamlwrangler.com,resources=dashboardnamespaceconfigs,verbs=get;list;watch;create;update;patch
 // +kubebuilder:rbac:groups=route.openshift.io,resources=routes,verbs=get;list;watch
 
 // Reconcile handles namespace reconciliation
@@ -75,8 +76,17 @@ func (r *NamespaceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		return ctrl.Result{}, err
 	}
 
-	// Check if namespace is labeled for dashboard
+	importedLiveState, err := r.syncDashboardNamespaceConfigFromLiveState(ctx, namespace.Name)
+	if err != nil {
+		logger.Error(err, "Failed to sync DashboardNamespaceConfig from live dashboard state", "namespace", namespace.Name)
+		return ctrl.Result{}, err
+	}
+
 	if namespace.Labels[NamespaceEnabledLabel] != "true" {
+		if importedLiveState {
+			logger.Info("Imported dashboard-labeled deployments; waiting for namespace label reconciliation", "namespace", namespace.Name)
+			return ctrl.Result{}, nil
+		}
 		logger.Info("Namespace not labeled for dashboard, skipping", "namespace", namespace.Name)
 		return ctrl.Result{}, nil
 	}

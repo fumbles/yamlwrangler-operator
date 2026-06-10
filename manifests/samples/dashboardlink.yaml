@@ -1,0 +1,11 @@
+apiVersion: dashboard.yamlwrangler.com/v1alpha1
+kind: DashboardLink
+metadata:
+  name: sample-app-docs
+  namespace: default
+spec:
+  app: sample-app
+  name: Documentation
+  category: Services
+  url: https://example.com/docs
+  description: External documentation

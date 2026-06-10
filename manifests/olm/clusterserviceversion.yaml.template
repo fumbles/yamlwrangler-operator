@@ -20,6 +20,49 @@ metadata:
             "replicas": 2,
             "enableConsolePlugin": true
           }
+        },
+        {
+          "apiVersion": "dashboard.yamlwrangler.com/v1alpha1",
+          "kind": "DashboardNamespaceConfig",
+          "metadata": {
+            "name": "sample-dashboard-config",
+            "namespace": "default"
+          },
+          "spec": {
+            "enabled": true,
+            "discoveryMode": "Merge",
+            "apps": {
+              "sample-app": {
+                "enabled": true,
+                "displayName": "Sample App",
+                "category": "Services",
+                "description": "Sample application managed from a DashboardNamespaceConfig",
+                "primaryRoute": "sample-app",
+                "customLinks": [
+                  {
+                    "name": "Documentation",
+                    "url": "https://example.com/docs",
+                    "description": "External documentation"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "apiVersion": "dashboard.yamlwrangler.com/v1alpha1",
+          "kind": "DashboardLink",
+          "metadata": {
+            "name": "sample-app-docs",
+            "namespace": "default"
+          },
+          "spec": {
+            "app": "sample-app",
+            "name": "Documentation",
+            "category": "Services",
+            "url": "https://example.com/docs",
+            "description": "External documentation"
+          }
         }
       ]
     capabilities: Basic Install
@@ -33,7 +76,60 @@ metadata:
     support: Yamlwrangler
 spec:
   displayName: Yamlwrangler App Dashboard Operator
-  description: Installs and manages the Yamlwrangler App Dashboard console plugin for OpenShift.
+  description: |-
+    Installs and manages the Yamlwrangler App Dashboard console plugin for OpenShift.
+
+    ## Quick start
+
+    1. Create an `AppDashboard` instance named `yamlwrangler`. This installs the console plugin workload, registers the `ConsolePlugin`, and enables the dashboard in the OpenShift console.
+    2. Open the `App Dashboard` page from the OpenShift console navigation.
+    3. Existing dashboard-labeled deployments and standalone custom-link ConfigMaps are imported automatically as operands when the operator sees them.
+
+    ## Show apps on the dashboard
+
+    The dashboard reads apps from deployments labeled `dashboard.yamlwrangler.com/enabled=true`.
+    App metadata comes from deployment annotations:
+
+    - `dashboard.yamlwrangler.com/display-name`
+    - `dashboard.yamlwrangler.com/category`
+    - `dashboard.yamlwrangler.com/description`
+    - `dashboard.yamlwrangler.com/app-group`
+    - `dashboard.yamlwrangler.com/primary-route`
+    - `dashboard.yamlwrangler.com/custom-links`
+
+    You can manage those fields from the Operator UI by creating or editing a `DashboardNamespaceConfig` in the target namespace.
+
+    ## Manage a namespace
+
+    Create a `DashboardNamespaceConfig` in an application namespace to generate and manage `dashboard-config-<namespace>`.
+
+    Use `discoveryMode: Merge` to keep existing config and append discovered deployments.
+    Use `discoveryMode: Replace` to rebuild from discovered deployments.
+    Use `discoveryMode: None` to manage only the apps declared in the custom resource.
+
+    The operator backfills `DashboardNamespaceConfig` operands from existing `dashboard-config-*` ConfigMaps and from currently labeled deployments, so existing dashboard state can be edited from Installed Operators.
+
+    ## Add links
+
+    Create a `DashboardLink` in the app namespace to add or edit one link.
+    Set `spec.app` to the app/deployment key, `spec.name` to the display name, and either `spec.url` for an external URL or `spec.route` for an OpenShift Route in the same namespace.
+
+    Standalone ConfigMaps labeled `dashboard.yamlwrangler.com/type=custom-link` are imported as `DashboardLink` operands. Editing an imported link syncs back to its source ConfigMap.
+
+    ## Group apps
+
+    Use `DashboardAppGroup` to select related deployments by name, label, or regex and apply shared dashboard metadata.
+    For manual config, set each child app's `groupWith` to the parent deployment key and set the parent app's `primaryRoute` to the route that should open from the grouped card.
+
+    ## Verify
+
+    Check operands from the CLI:
+
+    ```bash
+    oc get appdashboard
+    oc get dashboardnamespaceconfigs,dashboardlinks,dashboardappgroups -A
+    oc get pods -n app-dashboard
+    ```
   icon:
     - base64data: PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI5NiIgaGVpZ2h0PSI5NiIgdmlld0JveD0iMCAwIDk2IDk2IiBmaWxsPSJub25lIj4KICA8cmVjdCB4PSI0IiB5PSI0IiB3aWR0aD0iODgiIGhlaWdodD0iODgiIHJ4PSIyNCIgZmlsbD0iIzEyMDkxMiIvPgogIDxyZWN0IHg9IjQuNzUiIHk9IjQuNzUiIHdpZHRoPSI4Ni41IiBoZWlnaHQ9Ijg2LjUiIHJ4PSIyMy4yNSIgc3Ryb2tlPSIjN2YxZDJkIiBzdHJva2Utd2lkdGg9IjEuNSIvPgogIDxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDI0IDI0KSBzY2FsZSgyKSIgc3Ryb2tlPSIjZmI3MTg1IiBzdHJva2Utd2lkdGg9IjIuNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj4KICAgIDxwYXRoIGQ9Ik0yLjk3IDEyLjkyQTIgMiAwIDAgMCAyIDE0LjYzdjMuMjRhMiAyIDAgMCAwIC45NyAxLjcxbDMgMS44YTIgMiAwIDAgMCAyLjA2IDBMMTIgMTl2LTUuNWwtNS0zLTQuMDMgMi40MloiLz4KICAgIDxwYXRoIGQ9Im03IDE2LjUtNC43NC0yLjg1Ii8+CiAgICA8cGF0aCBkPSJtNyAxNi41IDUtMyIvPgogICAgPHBhdGggZD0iTTcgMTYuNXY1LjE3Ii8+CiAgICA8cGF0aCBkPSJNMTIgMTMuNVYxOWwzLjk3IDIuMzhhMiAyIDAgMCAwIDIuMDYgMGwzLTEuOGEyIDIgMCAwIDAgLjk3LTEuNzF2LTMuMjRhMiAyIDAgMCAwLS45Ny0xLjcxTDE3IDEwLjVsLTUgM1oiLz4KICAgIDxwYXRoIGQ9Im0xNyAxNi41LTUtMyIvPgogICAgPHBhdGggZD0ibTE3IDE2LjUgNC43NC0yLjg1Ii8+CiAgICA8cGF0aCBkPSJNMTcgMTYuNXY1LjE3Ii8+CiAgICA8cGF0aCBkPSJNNy45NyA0LjQyQTIgMiAwIDAgMCA3IDYuMTN2NC4zN2w1IDMgNS0zVjYuMTNhMiAyIDAgMCAwLS45Ny0xLjcxbC0zLTEuOGEyIDIgMCAwIDAtMi4wNiAwbC0zIDEuOFoiLz4KICAgIDxwYXRoIGQ9Ik0xMiA4IDcuMjYgNS4xNSIvPgogICAgPHBhdGggZD0ibTEyIDggNC43NC0yLjg1Ii8+CiAgICA8cGF0aCBkPSJNMTIgMTMuNVY4Ii8+CiAgPC9nPgo8L3N2Zz4K
       mediatype: image/svg+xml
@@ -74,6 +170,16 @@ spec:
         kind: DashboardAppGroup
         displayName: Dashboard App Group
         description: Selects and groups deployments for dashboard display.
+      - name: dashboardnamespaceconfigs.dashboard.yamlwrangler.com
+        version: v1alpha1
+        kind: DashboardNamespaceConfig
+        displayName: Dashboard Namespace Config
+        description: Generates and manages dashboard ConfigMaps for namespaces.
+      - name: dashboardlinks.dashboard.yamlwrangler.com
+        version: v1alpha1
+        kind: DashboardLink
+        displayName: Dashboard Link
+        description: Adds or updates a custom dashboard link for an app.
   install:
     strategy: deployment
     spec:
@@ -85,6 +191,8 @@ spec:
               resources:
                 - dashboardappgroups
                 - appdashboards
+                - dashboardnamespaceconfigs
+                - dashboardlinks
               verbs:
                 - get
                 - list
@@ -98,6 +206,8 @@ spec:
               resources:
                 - dashboardappgroups/status
                 - appdashboards/status
+                - dashboardnamespaceconfigs/status
+                - dashboardlinks/status
               verbs:
                 - get
                 - update
@@ -107,6 +217,8 @@ spec:
               resources:
                 - dashboardappgroups/finalizers
                 - appdashboards/finalizers
+                - dashboardnamespaceconfigs/finalizers
+                - dashboardlinks/finalizers
               verbs:
                 - update
             - apiGroups:

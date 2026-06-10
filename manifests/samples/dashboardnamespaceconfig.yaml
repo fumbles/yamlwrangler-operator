@@ -1,0 +1,19 @@
+apiVersion: dashboard.yamlwrangler.com/v1alpha1
+kind: DashboardNamespaceConfig
+metadata:
+  name: sample-dashboard-config
+  namespace: default
+spec:
+  enabled: true
+  discoveryMode: Merge
+  apps:
+    sample-app:
+      enabled: true
+      displayName: Sample App
+      category: Services
+      description: Sample application managed from a DashboardNamespaceConfig
+      primaryRoute: sample-app
+      customLinks:
+        - name: Documentation
+          url: https://example.com/docs
+          description: External documentation

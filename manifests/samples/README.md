@@ -103,3 +103,55 @@ The status shows:
 - List of matched deployment names
 - Last update timestamp
 - Conditions (Ready/Error)
+
+## DashboardNamespaceConfig
+
+The `DashboardNamespaceConfig` CR is the structured API for creating and editing
+`dashboard-config-<namespace>` ConfigMaps from the OpenShift Operator UI.
+
+**File:** [`dashboardnamespaceconfig.yaml`](./dashboardnamespaceconfig.yaml)
+
+```bash
+kubectl apply -f manifests/samples/dashboardnamespaceconfig.yaml
+```
+
+### Discovery Modes
+
+- `Merge`: keep existing ConfigMap entries, append discovered deployments, and overlay the CR fields.
+- `Replace`: rebuild from discovered deployments and then overlay the CR fields.
+- `None`: only write the apps declared in the CR, preserving existing ConfigMap content.
+
+Use this when you want to generate the sample namespace ConfigMap, edit app metadata,
+set categories, assign primary routes, or manage custom links with a typed resource.
+
+Existing `dashboard-config-<namespace>` ConfigMaps are imported automatically as
+`DashboardNamespaceConfig` operands named after the ConfigMap. Imported operands
+carry the `dashboard.yamlwrangler.com/imported-from-configmap` annotation.
+
+Deployments already labeled `dashboard.yamlwrangler.com/enabled=true` are also
+backfilled into `DashboardNamespaceConfig` operands using their dashboard
+annotations.
+
+## DashboardLink
+
+The `DashboardLink` CR is the lightweight API for adding or editing one custom
+link without editing the full namespace config.
+
+**File:** [`dashboardlink.yaml`](./dashboardlink.yaml)
+
+```bash
+kubectl apply -f manifests/samples/dashboardlink.yaml
+```
+
+The operator merges the link into the app entry in `dashboard-config-<namespace>`.
+Use `spec.url` for an external URL or `spec.route` to resolve an OpenShift Route
+from the same namespace.
+
+Custom links already present in an imported ConfigMap are backfilled as
+`DashboardLink` operands. Removing an imported `DashboardLink` removes that link
+from the ConfigMap.
+
+Standalone custom-link ConfigMaps labeled
+`dashboard.yamlwrangler.com/type=custom-link` are imported as `DashboardLink`
+operands and keep their `name`, `category`, `url`, and `description` fields in
+sync.

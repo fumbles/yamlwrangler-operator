@@ -1,108 +1,112 @@
 # Architecture
 
-## Components
+## Reconciliation Flow
 
 ```mermaid
 flowchart LR
-  User["User applies AppDashboard CR"] --> Operator["app-dashboard-operator"]
-  Operator --> PluginNS["Plugin namespace"]
-  Operator --> ConsolePlugin["ConsolePlugin"]
-  Operator --> ConsoleOperator["Console operator spec.plugins"]
-  Operator --> PluginDeploy["Console plugin Deployment/Service"]
-  Console["OpenShift Console"] --> ConsolePlugin
-  ConsolePlugin --> PluginDeploy
-  Browser["User browser"] --> Console
+  AD["AppDashboard"] --> ADC["AppDashboardReconciler"]
+  ADC --> PluginNS["Plugin namespace"]
+  ADC --> PluginDeploy["Console plugin Deployment"]
+  ADC --> ConsolePlugin["ConsolePlugin"]
+  ADC --> ConsoleOperator["Console spec.plugins"]
 
-  Namespace["Labeled app namespace"] --> NamespaceController["Namespace controller"]
-  Deployment["Deployments and Routes"] --> NamespaceController
-  NamespaceController --> ConfigMap["dashboard-config namespace ConfigMap"]
-  ConfigMap --> ConfigMapController["ConfigMap controller"]
-  ConfigMapController --> Labels["Deployment labels and annotations"]
-  Console --> Labels
+  DNC["DashboardNamespaceConfig"] --> DNCC["DashboardNamespaceConfigReconciler"]
+  DL["DashboardLink"] --> DLC["DashboardLinkReconciler"]
+  DAG["DashboardAppGroup"] --> DAGC["DashboardAppGroupReconciler"]
+
+  Namespace["Labeled Namespace"] --> NC["NamespaceReconciler"]
+  Deployment["Deployment / Route changes"] --> NC
+
+  DNCC --> CM["dashboard-config-namespace ConfigMap"]
+  DLC --> CM
+  NC --> CM
+  CM --> CMC["ConfigMapReconciler"]
+  CMC --> DNC
+  CMC --> DL
+  CMC --> Labels["Deployment labels and annotations"]
+  Console["OpenShift Console Plugin"] --> Labels
 ```
 
-## Reconciliation Responsibilities
+## Controllers
 
 ### AppDashboardReconciler
 
-Source file: `controllers/appdashboard_controller.go`
+Installs and maintains the console plugin workload:
 
-Owns installation of the dashboard console plugin. It creates or patches:
+- Namespace
+- ServiceAccount
+- nginx ConfigMap
+- HTTPS Service with OpenShift serving certificate annotation
+- Deployment
+- ConsolePlugin
+- optional ConsoleLink
+- optional `Console.operator.openshift.io/cluster.spec.plugins` entry
 
-- `Namespace`
-- `ServiceAccount`
-- nginx `ConfigMap`
-- HTTPS `Service` using OpenShift serving certs
-- plugin `Deployment`
-- `ConsolePlugin`
-- optional `ConsoleLink`
-- optional `operator.openshift.io/v1 Console/cluster` plugin enablement
+### DashboardNamespaceConfigReconciler
 
-This replaces the former separate Helm install path for day-to-day use. The Helm chart under `console-plugin/charts/` remains useful as reference material, but the operator path should be preferred.
+Creates or updates `dashboard-config-<namespace>` from a typed CR.
+
+Discovery modes:
+
+- `Merge`: preserve existing ConfigMap apps, add discovered deployments, overlay CR fields.
+- `Replace`: rebuild from discovery, then overlay CR fields.
+- `None`: do not discover deployments; only reconcile declared CR fields into existing config.
+
+This is the primary API for Operator UI based ConfigMap management.
+
+### DashboardLinkReconciler
+
+Adds or updates a single custom link in `dashboard-config-<namespace>`.
+
+Use this when the user only needs to add an external link or route-backed link
+without editing a full namespace config object.
 
 ### NamespaceReconciler
 
-Source file: `controllers/namespace_controller.go`
-
-Watches:
-
-- `Namespace`
-- `Deployment`
-- `Route`
-
-When a namespace is labeled with `dashboard.yamlwrangler.com/enabled=true`, it ensures a `dashboard-config-<namespace>` ConfigMap exists. On later deployment or route changes, it merges newly discovered deployments into the existing configmap without overwriting manual app entries.
+Watches namespaces, deployments, and routes. For namespaces labeled
+`dashboard.yamlwrangler.com/enabled=true`, it creates or merges generated app
+entries into the namespace ConfigMap.
 
 ### ConfigMapReconciler
 
-Source file: `controllers/configmap_controller.go`
-
-Watches configmaps labeled:
+Watches ConfigMaps labeled:
 
 ```text
 dashboard.yamlwrangler.com/type=namespace-config
 ```
 
-It parses `config.yaml`, resolves route names in `customLinks`, and applies the dashboard label/annotations to deployments.
+It parses `config.yaml`, imports existing namespace ConfigMaps and standalone
+custom-link ConfigMaps into typed operands, resolves route names in custom links,
+and writes the deployment labels/annotations consumed by the console plugin.
+
+For import, it creates or updates:
+
+- one `DashboardNamespaceConfig` named after the ConfigMap
+- one `DashboardLink` per custom link
+
+Only operands marked with `dashboard.yamlwrangler.com/imported-from-configmap`
+are updated by the importer. User-created operands are left alone.
+
+The namespace controller also backfills `DashboardNamespaceConfig` from current
+dashboard-labeled deployments. This captures the live state used by the console
+plugin when no `dashboard-config-*` ConfigMap exists yet.
 
 ### DashboardAppGroupReconciler
 
-Source file: `controllers/dashboardappgroup_controller.go`
-
-Supports explicit named/regex/label selection of deployments. This is useful when an app is made of multiple deployments and you want a CR-driven grouping model instead of editing the generated namespace configmap.
+Selects deployments by name, regex, or labels, then applies group metadata and
+dashboard labels/annotations.
 
 ## Frontend Data Contract
 
-The console plugin in `console-plugin/` watches:
+The console plugin consumes deployment labels/annotations:
 
-- Deployments labeled `dashboard.yamlwrangler.com/enabled=true`
-- Routes
-- ConfigMaps labeled `dashboard.yamlwrangler.com/type=custom-link`
+- `dashboard.yamlwrangler.com/enabled=true`
+- `dashboard.yamlwrangler.com/display-name`
+- `dashboard.yamlwrangler.com/category`
+- `dashboard.yamlwrangler.com/description`
+- `dashboard.yamlwrangler.com/app-group`
+- `dashboard.yamlwrangler.com/primary-route`
+- `dashboard.yamlwrangler.com/custom-links`
 
-The operator should continue to write deployment metadata in the format the plugin expects. If this contract changes, update both `controllers/` and `console-plugin/src/components/AppDashboardPage.tsx` together.
-
-## Images
-
-There are still two runtime images:
-
-- Operator image: built from the repo root `Dockerfile`
-- Console plugin image: built from `console-plugin/Dockerfile`
-
-The repo is consolidated, but the runtime separation is intentional. The operator reconciles a deployment that serves static frontend assets, so the plugin image should remain separately versioned unless a future design embeds assets directly in the operator.
-
-## OLM Install Path
-
-Use `./build-and-deploy.sh --olm` when the operator should appear in the OpenShift Console Installed Operators UI:
-
-```bash
-oc get csv -n app-dashboard-operator
-```
-
-That path applies:
-
-- `manifests/olm/operatorgroup.yaml`
-- `manifests/olm/serviceaccount.yaml`
-- `manifests/olm/app-dashboard-operator.clusterserviceversion.yaml`
-
-The CSV icon is sourced from the Yamlwrangler website header mark in `~/git/yamlwrangler-home/src/App.jsx`: a lucide `Boxes` glyph in the red/dark rounded square treatment. The reusable SVG lives at `manifests/olm/icon.svg`, and its base64 form is embedded in `spec.icon` in the CSV.
-
-Raw manifests are still useful for quick development, but direct CSV application does not create the OLM `operators.operators.coreos.com` summary object shown by `oc get operator`. That summary object requires a catalog/subscription install path.
+Keep controller output and `console-plugin/src/components/AppDashboardPage.tsx`
+in sync.
