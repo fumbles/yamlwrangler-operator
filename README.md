@@ -1,6 +1,9 @@
 
-[![Docker Pulls](https://img.shields.io/docker/pulls/fumbles/yamlwrangler-operator?logo=docker)](https://hub.docker.com/r/fumbles/yamlwrangler-operator)
-[![Docker Image Version](https://img.shields.io/docker/v/fumbles/yamlwrangler-operator?sort=semver&logo=docker)](https://hub.docker.com/r/fumbles/yamlwrangler-operator)
+[![Docker Pulls](https://img.shields.io/docker/pulls/fumbles/yamlwrangler-operator?logo=docker&label=operator%20pulls)](https://hub.docker.com/r/fumbles/yamlwrangler-operator)
+[![Docker Pulls](https://img.shields.io/docker/pulls/fumbles/yamlwrangler-dashboard?logo=docker&label=dashboard%20pulls)](https://hub.docker.com/r/fumbles/yamlwrangler-dashboard)
+[![Docker Pulls](https://img.shields.io/docker/pulls/fumbles/yamlwrangler-operator-bundle?logo=docker&label=bundle%20pulls)](https://hub.docker.com/r/fumbles/yamlwrangler-operator-bundle)
+[![Docker Pulls](https://img.shields.io/docker/pulls/fumbles/yamlwrangler-operator-catalog?logo=docker&label=catalog%20pulls)](https://hub.docker.com/r/fumbles/yamlwrangler-operator-catalog)
+[![Docker Image Version](https://img.shields.io/docker/v/fumbles/yamlwrangler-operator?sort=semver&logo=docker&label=version)](https://hub.docker.com/r/fumbles/yamlwrangler-operator)
 [![App Showcase](https://img.shields.io/badge/App_Showcase-yamlwrangler.com-ee0000?logo=redhatopenshift&logoColor=white)](https://yamlwrangler.com)
 
 # App Dashboard Operator
