@@ -15,6 +15,8 @@ APP_DASHBOARD_NAME="${APP_DASHBOARD_NAME:-yamlwrangler}"
 DOCKERHUB_ORG="${DOCKERHUB_ORG:-fumbles}"
 DOCKERHUB_OPERATOR_IMAGE_NAME="${DOCKERHUB_OPERATOR_IMAGE_NAME:-yamlwrangler-operator}"
 DOCKERHUB_PLUGIN_IMAGE_NAME="${DOCKERHUB_PLUGIN_IMAGE_NAME:-yamlwrangler-dashboard}"
+DOCKERHUB_BUNDLE_IMAGE_NAME="${DOCKERHUB_BUNDLE_IMAGE_NAME:-yamlwrangler-operator-bundle}"
+DOCKERHUB_CATALOG_IMAGE_NAME="${DOCKERHUB_CATALOG_IMAGE_NAME:-yamlwrangler-operator-catalog}"
 PACKAGE_NAME="${PACKAGE_NAME:-app-dashboard-operator}"
 CHANNEL="${CHANNEL:-alpha}"
 SHIP=false
@@ -29,7 +31,7 @@ Arguments:
   tag       Optional image tag. Defaults to v1.0.0-<timestamp>.
 
 Flags:
-  --ship   Also tag and push operator/plugin images to Docker Hub.
+  --ship   Also tag and push operator/plugin images to Docker Hub. When combined with --olm, also pushes bundle/catalog images.
   --olm    Install the operator through OLM CSV/OperatorGroup so oc get operator reports it.
 
 Environment overrides:
@@ -40,6 +42,8 @@ Environment overrides:
   DOCKERHUB_ORG                    ${DOCKERHUB_ORG}
   DOCKERHUB_OPERATOR_IMAGE_NAME    ${DOCKERHUB_OPERATOR_IMAGE_NAME}
   DOCKERHUB_PLUGIN_IMAGE_NAME      ${DOCKERHUB_PLUGIN_IMAGE_NAME}
+  DOCKERHUB_BUNDLE_IMAGE_NAME      ${DOCKERHUB_BUNDLE_IMAGE_NAME}
+  DOCKERHUB_CATALOG_IMAGE_NAME     ${DOCKERHUB_CATALOG_IMAGE_NAME}
   BUNDLE_IMAGE_NAME                ${BUNDLE_IMAGE_NAME}
   CATALOG_IMAGE_NAME               ${CATALOG_IMAGE_NAME}
   PACKAGE_NAME                     ${PACKAGE_NAME}
@@ -143,6 +147,8 @@ BUNDLE_CLUSTER_IMAGE="${INTERNAL_REGISTRY}/${OPERATOR_NAMESPACE}/${BUNDLE_IMAGE_
 CATALOG_CLUSTER_IMAGE="${INTERNAL_REGISTRY}/${OPERATOR_NAMESPACE}/${CATALOG_IMAGE_NAME}:${TAG}"
 DOCKERHUB_OPERATOR_IMAGE="docker.io/${DOCKERHUB_ORG}/${DOCKERHUB_OPERATOR_IMAGE_NAME}:${TAG}"
 DOCKERHUB_PLUGIN_IMAGE="docker.io/${DOCKERHUB_ORG}/${DOCKERHUB_PLUGIN_IMAGE_NAME}:${TAG}"
+DOCKERHUB_BUNDLE_IMAGE="docker.io/${DOCKERHUB_ORG}/${DOCKERHUB_BUNDLE_IMAGE_NAME}:${TAG}"
+DOCKERHUB_CATALOG_IMAGE="docker.io/${DOCKERHUB_ORG}/${DOCKERHUB_CATALOG_IMAGE_NAME}:${TAG}"
 
 echo "=========================================="
 echo "Building Yamlwrangler Dashboard Operator"
@@ -160,6 +166,10 @@ fi
 if [ "${SHIP}" = true ]; then
   echo "Docker Hub operator image: ${DOCKERHUB_OPERATOR_IMAGE}"
   echo "Docker Hub plugin image:   ${DOCKERHUB_PLUGIN_IMAGE}"
+  if [ "${OLM}" = true ]; then
+    echo "Docker Hub bundle image:   ${DOCKERHUB_BUNDLE_IMAGE}"
+    echo "Docker Hub catalog image:  ${DOCKERHUB_CATALOG_IMAGE}"
+  fi
 fi
 if [ "${OLM}" = true ]; then
   echo "Install mode: OLM"
@@ -335,6 +345,16 @@ if [ "${SHIP}" = true ]; then
   podman tag "${PLUGIN_PUSH_IMAGE}" "${DOCKERHUB_PLUGIN_IMAGE}"
   podman push "${DOCKERHUB_OPERATOR_IMAGE}"
   podman push "${DOCKERHUB_PLUGIN_IMAGE}"
+  
+  if [ "${OLM}" = true ]; then
+    echo "Shipping OLM bundle and catalog to Docker Hub..."
+    podman tag "${BUNDLE_PUSH_IMAGE}" "${DOCKERHUB_BUNDLE_IMAGE}"
+    podman tag "${CATALOG_PUSH_IMAGE}" "${DOCKERHUB_CATALOG_IMAGE}"
+    podman push "${DOCKERHUB_BUNDLE_IMAGE}"
+    podman push "${DOCKERHUB_CATALOG_IMAGE}"
+    echo "✓ Docker Hub OLM images pushed successfully"
+  fi
+  
   echo "✓ Docker Hub images pushed successfully"
   echo ""
 fi
