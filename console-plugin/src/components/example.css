@@ -5,3 +5,200 @@
    * https://www.patternfly.org/tokens/all-patternfly-tokens */
   color: var(--pf-t--global--color--brand--default);
 }
+
+.app-dashboard {
+  --app-dashboard-color-primary: var(--pf-t--global--color--brand--default);
+  --app-dashboard-color-primary-hover: var(--pf-t--global--color--brand--hover);
+  --app-dashboard-color-text: var(--pf-t--global--color--text--default);
+  --app-dashboard-color-text-muted: var(--pf-t--global--color--text--subtle);
+  --app-dashboard-color-text-placeholder: var(--pf-t--global--color--text--disabled);
+  --app-dashboard-color-border: var(--pf-t--global--border--color--default);
+  --app-dashboard-color-border-muted: var(--pf-t--global--border--color--subtle);
+  --app-dashboard-color-surface: var(--pf-t--global--background--color--primary--default);
+  --app-dashboard-color-surface-secondary: var(--pf-t--global--background--color--secondary--default);
+  --app-dashboard-color-surface-tertiary: var(--pf-t--global--background--color--secondary--hover);
+  --app-dashboard-color-surface-selected: var(--pf-t--global--background--color--secondary--selected--default);
+  --app-dashboard-color-icon: var(--pf-t--global--icon--color--regular);
+  --app-dashboard-color-icon-muted: var(--pf-t--global--icon--color--subtle);
+  --app-dashboard-color-favorite: var(--pf-t--global--color--status--warning--default);
+  --app-dashboard-shadow-resting: var(--pf-t--global--box-shadow--sm);
+  --app-dashboard-shadow-hover: var(--pf-t--global--box-shadow--md);
+}
+
+.app-dashboard__toolbar {
+  background-color: var(--app-dashboard-color-surface-secondary);
+  border-bottom: 1px solid var(--app-dashboard-color-border);
+}
+
+.app-dashboard__toolbar-description {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--app-dashboard-color-text-muted);
+}
+
+.app-dashboard__toolbar-code {
+  font-size: 0.75rem;
+  color: var(--app-dashboard-color-text);
+  background-color: var(--app-dashboard-color-surface);
+  border: 1px solid var(--app-dashboard-color-border-muted);
+  border-radius: 3px;
+  padding: 0 0.25rem;
+}
+
+.app-dashboard__section-title-count {
+  color: var(--app-dashboard-color-text-muted);
+  font-size: 0.8125rem;
+  margin-left: 0.5rem;
+}
+
+.app-dashboard__category-header,
+.app-dashboard__namespace-lane,
+.app-dashboard__topology-summary,
+.app-dashboard__topology-footer {
+  background-color: var(--app-dashboard-color-surface-secondary);
+}
+
+.app-dashboard__category-header {
+  cursor: pointer;
+  margin-bottom: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  color: var(--app-dashboard-color-text);
+}
+
+.app-dashboard__category-header-icon,
+.app-dashboard__section-icon,
+.app-dashboard__app-category-icon,
+.app-dashboard__table-category-icon {
+  color: var(--app-dashboard-color-primary);
+}
+
+.app-dashboard__category-header-count,
+.app-dashboard__namespace-count,
+.app-dashboard__category-chip,
+.app-dashboard__description,
+.app-dashboard__description-truncate,
+.app-dashboard__topology-tip,
+.app-dashboard__custom-link-label,
+.app-dashboard__toggle-icon,
+.app-dashboard__muted-icon {
+  color: var(--app-dashboard-color-text-muted);
+}
+
+.app-dashboard__namespace-lane {
+  border-radius: 4px;
+  overflow: hidden;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.app-dashboard__namespace-header {
+  cursor: pointer;
+  padding: 0.75rem 1rem;
+  background-color: var(--app-dashboard-color-surface);
+  border-bottom: 1px solid var(--app-dashboard-color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--app-dashboard-color-text);
+}
+
+.app-dashboard__namespace-header--collapsed {
+  border-bottom: none;
+}
+
+.app-dashboard__category-chip {
+  font-size: 0.75rem;
+  padding: 0.125rem 0.375rem;
+  background-color: var(--app-dashboard-color-surface-tertiary);
+  border-radius: 3px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.app-dashboard__card {
+  background-color: var(--app-dashboard-color-surface);
+  box-shadow: var(--app-dashboard-shadow-resting);
+  transition:
+    box-shadow 0.2s ease-in-out,
+    transform 0.2s ease-in-out,
+    background-color 0.2s ease-in-out,
+    border-color 0.2s ease-in-out;
+}
+
+.app-dashboard__card:hover {
+  box-shadow: var(--app-dashboard-shadow-hover);
+  transform: translateY(-2px);
+}
+
+.app-dashboard__card-body {
+  color: var(--app-dashboard-color-text);
+}
+
+.app-dashboard__app-link,
+.app-dashboard__app-name {
+  color: var(--app-dashboard-color-text);
+  font-weight: 600;
+}
+
+.app-dashboard__app-link {
+  text-decoration: none;
+}
+
+.app-dashboard__app-link:hover,
+.app-dashboard__app-link:focus-visible {
+  color: var(--app-dashboard-color-primary-hover);
+  text-decoration: underline;
+}
+
+.app-dashboard__card-divider {
+  border-top: 1px solid var(--app-dashboard-color-border);
+}
+
+.app-dashboard__subrow {
+  background-color: var(--app-dashboard-color-surface-secondary);
+}
+
+.app-dashboard__placeholder {
+  font-size: 0.8125rem;
+  color: var(--app-dashboard-color-text-placeholder);
+}
+
+.app-dashboard__favorite-icon--active {
+  color: var(--app-dashboard-color-favorite);
+}
+
+.app-dashboard__favorite-icon--inactive {
+  color: var(--app-dashboard-color-icon-muted);
+}
+
+.app-dashboard__topology-empty,
+.app-dashboard__topology-canvas {
+  background-color: var(--app-dashboard-color-surface);
+  border: 1px solid var(--app-dashboard-color-border);
+}
+
+.app-dashboard__topology-summary {
+  border-bottom: 1px solid var(--app-dashboard-color-border);
+  border-radius: 4px 4px 0 0;
+}
+
+.app-dashboard__topology-canvas {
+  border-radius: 0 0 4px 4px;
+}
+
+.app-dashboard__topology-footer {
+  border-top: 1px solid var(--app-dashboard-color-border);
+  font-size: 0.875rem;
+  color: var(--app-dashboard-color-text-muted);
+}
+
+.app-dashboard__topology-empty-icon {
+  color: var(--app-dashboard-color-primary);
+}
+
+.app-dashboard__topology-node-icon {
+  color: currentcolor;
+}

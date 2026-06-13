@@ -113,6 +113,7 @@ const SEARCH_QUERY_KEY = 'dashboard.searchQuery';
 const FAVORITES_KEY = 'dashboard.favorites';
 const COLLAPSED_NAMESPACES_KEY = 'dashboard.collapsedNamespaces';
 const DOCS_PATH = '/api/plugins/app-dashboard-console-plugin/plugin-assets/VIEWS_GUIDE.md';
+const DASHBOARD_ENABLED_KEY = 'dashboard.yamlwrangler.com/enabled';
 
 // Map category names to PatternFly icons
 const getCategoryIcon = (category: string) => {
@@ -242,7 +243,8 @@ const AppDashboardPage: React.FC = () => {
     }
   });
 
-  // Watch all deployments with the dashboard label
+  // Watch deployments broadly so operator-owned workloads that preserve annotations
+  // but reconcile labels away can still appear on the dashboard.
   const deploymentsWatch = useK8sWatchResource<Deployment[]>({
     groupVersionKind: {
       group: 'apps',
@@ -250,11 +252,6 @@ const AppDashboardPage: React.FC = () => {
       kind: 'Deployment',
     },
     isList: true,
-    selector: {
-      matchLabels: {
-        'dashboard.yamlwrangler.com/enabled': 'true',
-      },
-    },
   });
   const [deployments, deploymentsLoaded] = deploymentsWatch as [Deployment[], boolean, unknown];
 
@@ -305,10 +302,7 @@ const AppDashboardPage: React.FC = () => {
 
   // Save collapsed namespaces to localStorage when they change
   React.useEffect(() => {
-    localStorage.setItem(
-      COLLAPSED_NAMESPACES_KEY,
-      JSON.stringify(Array.from(collapsedNamespaces)),
-    );
+    localStorage.setItem(COLLAPSED_NAMESPACES_KEY, JSON.stringify(Array.from(collapsedNamespaces)));
   }, [collapsedNamespaces]);
 
   React.useEffect(() => {
@@ -346,6 +340,13 @@ const AppDashboardPage: React.FC = () => {
       const allDeploymentApps: AppRoute[] = [];
 
       deployments.forEach((deployment) => {
+        const dashboardEnabled =
+          deployment.metadata.labels?.[DASHBOARD_ENABLED_KEY] === 'true' ||
+          deployment.metadata.annotations?.[DASHBOARD_ENABLED_KEY] === 'true';
+        if (!dashboardEnabled) {
+          return;
+        }
+
         const namespace = deployment.metadata.namespace;
         const deploymentName = deployment.metadata.name;
         const displayName =
@@ -683,14 +684,15 @@ const AppDashboardPage: React.FC = () => {
                     name, namespace, or category.
                   </p>
                   <p>
-                    Clear the current search to see all available applications, or add more labeled
-                    routes and custom links.
+                    Clear the current search to see all available applications, or add more
+                    dashboard-enabled deployments and custom links.
                   </p>
                 </>
               ) : (
                 <>
                   <p>
-                    No routes are labeled with <code>dashboard.yamlwrangler.com/enabled=true</code>
+                    No deployments are labeled or annotated with{' '}
+                    <code>dashboard.yamlwrangler.com/enabled=true</code>
                   </p>
                   <p>
                     No ConfigMaps are labeled with{' '}
@@ -755,16 +757,16 @@ const AppDashboardPage: React.FC = () => {
               >
                 {/* Swimlane Container */}
                 <div
+                  className="app-dashboard__namespace-lane"
                   style={{
                     borderLeft: `4px solid var(--pf-v5-global--palette--${namespaceColor}-300)`,
-                    backgroundColor: isExpanded ? '#FAFAFA' : '#F5F5F5',
-                    borderRadius: '4px',
-                    overflow: 'hidden',
-                    transition: 'background-color 0.2s',
                   }}
                 >
                   {/* Swimlane Header - Clickable */}
                   <div
+                    className={`app-dashboard__namespace-header${
+                      isExpanded ? '' : ' app-dashboard__namespace-header--collapsed'
+                    }`}
                     onClick={() => {
                       toggleNamespace(namespace);
                     }}
@@ -776,22 +778,13 @@ const AppDashboardPage: React.FC = () => {
                     }}
                     role="button"
                     tabIndex={0}
-                    style={{
-                      cursor: 'pointer',
-                      padding: '0.75rem 1rem',
-                      backgroundColor: '#FFFFFF',
-                      borderBottom: isExpanded ? '1px solid #D2D2D2' : 'none',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                    }}
                   >
                     <Flex
                       alignItems={{ default: 'alignItemsCenter' }}
                       spaceItems={{ default: 'spaceItemsSm' }}
                     >
                       {/* Expand/Collapse Icon */}
-                      <FlexItem style={{ color: '#151515' }}>
+                      <FlexItem className="app-dashboard__toggle-icon">
                         {isExpanded ? <AngleDownIcon /> : <AngleRightIcon />}
                       </FlexItem>
 
@@ -807,7 +800,10 @@ const AppDashboardPage: React.FC = () => {
 
                       {/* App Count */}
                       <FlexItem>
-                        <span style={{ fontSize: '0.875rem', color: '#6A6E73', fontWeight: 600 }}>
+                        <span
+                          className="app-dashboard__namespace-count"
+                          style={{ fontWeight: 600 }}
+                        >
                           {apps.length} {apps.length === 1 ? 'app' : 'apps'}
                         </span>
                       </FlexItem>
@@ -818,16 +814,13 @@ const AppDashboardPage: React.FC = () => {
                           {Object.entries(categoryCount).map(([cat, count]) => (
                             <FlexItem key={cat}>
                               <span
-                                style={{
-                                  fontSize: '0.75rem',
-                                  color: '#6A6E73',
-                                  padding: '0.125rem 0.375rem',
-                                  backgroundColor: '#F0F0F0',
-                                  borderRadius: '3px',
-                                }}
+                                className="app-dashboard__category-chip"
                                 title={`${cat}: ${String(count)} app${count === 1 ? '' : 's'}`}
                               >
-                                {getCategoryIcon(cat)} {count}
+                                <span className="app-dashboard__app-category-icon">
+                                  {getCategoryIcon(cat)}
+                                </span>{' '}
+                                {count}
                               </span>
                             </FlexItem>
                           ))}
@@ -841,35 +834,26 @@ const AppDashboardPage: React.FC = () => {
                     <div style={{ padding: '1rem' }}>
                       <Gallery
                         hasGutter
-                        minWidths={{ default: '160px', md: '180px' }}
-                        maxWidths={{ default: '220px', md: '240px' }}
+                        minWidths={{ default: '140px', md: '150px' }}
+                        maxWidths={{ default: '180px', md: '200px' }}
                       >
                         {apps.map((app) => (
                           <Card
                             key={`${app.namespace}-${app.name}`}
                             isCompact
-                            style={{
-                              boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                              transition: 'box-shadow 0.2s, transform 0.2s',
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.boxShadow = '0 3px 6px rgba(0,0,0,0.15)';
-                              e.currentTarget.style.transform = 'translateY(-2px)';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
-                              e.currentTarget.style.transform = 'translateY(0)';
-                            }}
+                            className="app-dashboard__card"
                           >
-                            <CardBody style={{ padding: '0.625rem' }}>
+                            <CardBody
+                              className="app-dashboard__card-body"
+                              style={{ padding: '0.625rem' }}
+                            >
                               {/* App Name */}
                               <div style={{ marginBottom: '0.375rem' }}>
                                 {app.isCustomLink ? (
                                   <span
+                                    className="app-dashboard__app-name"
                                     style={{
                                       fontSize: '0.875rem',
-                                      fontWeight: 600,
-                                      color: '#151515',
                                       display: 'block',
                                     }}
                                   >
@@ -878,20 +862,10 @@ const AppDashboardPage: React.FC = () => {
                                 ) : (
                                   <a
                                     href={getDeploymentLink(app.namespace, app.name)}
+                                    className="app-dashboard__app-link"
                                     style={{
                                       fontSize: '0.875rem',
-                                      fontWeight: 600,
-                                      color: '#151515',
-                                      textDecoration: 'none',
                                       display: 'block',
-                                    }}
-                                    onMouseEnter={(e) => {
-                                      e.currentTarget.style.color = '#0066CC';
-                                      e.currentTarget.style.textDecoration = 'underline';
-                                    }}
-                                    onMouseLeave={(e) => {
-                                      e.currentTarget.style.color = '#151515';
-                                      e.currentTarget.style.textDecoration = 'none';
                                     }}
                                   >
                                     <Truncate content={app.displayName} />
@@ -905,11 +879,17 @@ const AppDashboardPage: React.FC = () => {
                                   alignItems={{ default: 'alignItemsCenter' }}
                                   spaceItems={{ default: 'spaceItemsXs' }}
                                 >
-                                  <FlexItem style={{ color: '#0066CC', fontSize: '0.75rem' }}>
+                                  <FlexItem
+                                    className="app-dashboard__app-category-icon"
+                                    style={{ fontSize: '0.75rem' }}
+                                  >
                                     {getCategoryIcon(app.category)}
                                   </FlexItem>
                                   <FlexItem>
-                                    <span style={{ fontSize: '0.6875rem', color: '#6A6E73' }}>
+                                    <span
+                                      className="app-dashboard__category-header-count"
+                                      style={{ fontSize: '0.6875rem', marginLeft: 0 }}
+                                    >
                                       {app.category}
                                     </span>
                                   </FlexItem>
@@ -919,10 +899,10 @@ const AppDashboardPage: React.FC = () => {
                               {/* Description (if available) */}
                               {app.description && (
                                 <p
+                                  className="app-dashboard__description"
                                   style={{
                                     margin: '0 0 0.375rem 0',
                                     fontSize: '0.6875rem',
-                                    color: '#6A6E73',
                                     lineHeight: '1.3',
                                     maxHeight: '2.6em',
                                     overflow: 'hidden',
@@ -934,10 +914,10 @@ const AppDashboardPage: React.FC = () => {
 
                               {/* Open Button */}
                               <div
+                                className="app-dashboard__card-divider"
                                 style={{
                                   marginTop: '0.375rem',
                                   paddingTop: '0.375rem',
-                                  borderTop: '1px solid #D2D2D2',
                                 }}
                               >
                                 <Button
@@ -992,6 +972,7 @@ const AppDashboardPage: React.FC = () => {
               <PageSection key={category} style={{ paddingTop: '0.5rem', paddingBottom: '0.5rem' }}>
                 {/* Category Header - Clickable to expand/collapse */}
                 <div
+                  className="app-dashboard__category-header"
                   onClick={() => {
                     toggleCategory(category);
                   }}
@@ -1003,20 +984,14 @@ const AppDashboardPage: React.FC = () => {
                   }}
                   role="button"
                   tabIndex={0}
-                  style={{
-                    cursor: 'pointer',
-                    marginBottom: '0.5rem',
-                    padding: '0.5rem',
-                    backgroundColor: '#F0F0F0',
-                    borderRadius: '4px',
-                    display: 'flex',
-                    alignItems: 'center',
-                  }}
                 >
-                  <span style={{ marginRight: '0.5rem', color: '#151515' }}>
+                  <span className="app-dashboard__toggle-icon" style={{ marginRight: '0.5rem' }}>
                     {isExpanded ? <AngleDownIcon /> : <AngleRightIcon />}
                   </span>
-                  <span style={{ marginRight: '0.5rem', color: '#0066CC', fontSize: '1rem' }}>
+                  <span
+                    className="app-dashboard__category-header-icon"
+                    style={{ marginRight: '0.5rem', fontSize: '1rem' }}
+                  >
                     {getCategoryIcon(category)}
                   </span>
                   <Title
@@ -1026,7 +1001,10 @@ const AppDashboardPage: React.FC = () => {
                   >
                     {category}
                   </Title>
-                  <span style={{ color: '#6A6E73', fontSize: '0.75rem' }}>
+                  <span
+                    className="app-dashboard__category-header-count"
+                    style={{ fontSize: '0.75rem' }}
+                  >
                     ({apps.length} {apps.length === 1 ? 'app' : 'apps'})
                   </span>
                 </div>
@@ -1083,28 +1061,21 @@ const AppDashboardPage: React.FC = () => {
                                       </Button>
                                     </FlexItem>
                                   )}
-                                  <FlexItem style={{ color: '#0066CC', fontSize: '0.875rem' }}>
+                                  <FlexItem
+                                    className="app-dashboard__table-category-icon"
+                                    style={{ fontSize: '0.875rem' }}
+                                  >
                                     {getCategoryIcon(app.category)}
                                   </FlexItem>
                                   <FlexItem>
                                     {app.isCustomLink ? (
-                                      <span style={{ fontWeight: 600 }}>{app.displayName}</span>
+                                      <span className="app-dashboard__app-name">
+                                        {app.displayName}
+                                      </span>
                                     ) : (
                                       <a
                                         href={getDeploymentLink(app.namespace, app.name)}
-                                        style={{
-                                          fontWeight: 600,
-                                          color: '#151515',
-                                          textDecoration: 'none',
-                                        }}
-                                        onMouseEnter={(e) => {
-                                          e.currentTarget.style.color = '#0066CC';
-                                          e.currentTarget.style.textDecoration = 'underline';
-                                        }}
-                                        onMouseLeave={(e) => {
-                                          e.currentTarget.style.color = '#151515';
-                                          e.currentTarget.style.textDecoration = 'none';
-                                        }}
+                                        className="app-dashboard__app-link"
                                       >
                                         {app.displayName}
                                       </a>
@@ -1146,11 +1117,13 @@ const AppDashboardPage: React.FC = () => {
                                       >
                                         {isFavorite(app.namespace, app.name) ? (
                                           <StarIcon
-                                            style={{ color: '#F0AB00', fontSize: '0.875rem' }}
+                                            className="app-dashboard__favorite-icon--active"
+                                            style={{ fontSize: '0.875rem' }}
                                           />
                                         ) : (
                                           <OutlinedStarIcon
-                                            style={{ color: '#6A6E73', fontSize: '0.875rem' }}
+                                            className="app-dashboard__favorite-icon--inactive"
+                                            style={{ fontSize: '0.875rem' }}
                                           />
                                         )}
                                       </Button>
@@ -1201,12 +1174,11 @@ const AppDashboardPage: React.FC = () => {
                                   <Truncate
                                     content={app.description}
                                     tooltipPosition="top"
-                                    style={{ fontSize: '0.8125rem', color: '#6A6E73' }}
+                                    className="app-dashboard__description-truncate"
+                                    style={{ fontSize: '0.8125rem' }}
                                   />
                                 ) : (
-                                  <span style={{ fontSize: '0.8125rem', color: '#D2D2D2' }}>
-                                    No description
-                                  </span>
+                                  <span className="app-dashboard__placeholder">No description</span>
                                 )}
                               </Td>
                             </Tr>
@@ -1217,7 +1189,7 @@ const AppDashboardPage: React.FC = () => {
                               app.subDeployments?.map((subApp) => (
                                 <Tr
                                   key={`${subApp.namespace}/${subApp.name}`}
-                                  style={{ backgroundColor: '#F5F5F5' }}
+                                  className="app-dashboard__subrow"
                                 >
                                   <Td dataLabel="Application" style={{ paddingLeft: '3rem' }}>
                                     <Flex
@@ -1227,18 +1199,9 @@ const AppDashboardPage: React.FC = () => {
                                       <FlexItem>
                                         <a
                                           href={getDeploymentLink(subApp.namespace, subApp.name)}
+                                          className="app-dashboard__app-link"
                                           style={{
                                             fontSize: '0.8125rem',
-                                            color: '#151515',
-                                            textDecoration: 'none',
-                                          }}
-                                          onMouseEnter={(e) => {
-                                            e.currentTarget.style.color = '#0066CC';
-                                            e.currentTarget.style.textDecoration = 'underline';
-                                          }}
-                                          onMouseLeave={(e) => {
-                                            e.currentTarget.style.color = '#151515';
-                                            e.currentTarget.style.textDecoration = 'none';
                                           }}
                                         >
                                           {subApp.displayName}
@@ -1277,10 +1240,11 @@ const AppDashboardPage: React.FC = () => {
                                       <Truncate
                                         content={subApp.description}
                                         tooltipPosition="top"
-                                        style={{ fontSize: '0.8125rem', color: '#6A6E73' }}
+                                        className="app-dashboard__description-truncate"
+                                        style={{ fontSize: '0.8125rem' }}
                                       />
                                     ) : (
-                                      <span style={{ fontSize: '0.8125rem', color: '#D2D2D2' }}>
+                                      <span className="app-dashboard__placeholder">
                                         No description
                                       </span>
                                     )}
@@ -1292,7 +1256,7 @@ const AppDashboardPage: React.FC = () => {
                             {app.customLinks?.map((link, index) => (
                               <Tr
                                 key={`${app.namespace}/${app.name}/custom-link-${index.toString()}`}
-                                style={{ backgroundColor: '#F5F5F5' }}
+                                className="app-dashboard__subrow"
                               >
                                 <Td dataLabel="Application" style={{ paddingLeft: '3rem' }}>
                                   <Flex
@@ -1301,9 +1265,9 @@ const AppDashboardPage: React.FC = () => {
                                   >
                                     <FlexItem>
                                       <span
+                                        className="app-dashboard__custom-link-label"
                                         style={{
                                           fontSize: '0.8125rem',
-                                          color: '#6A6E73',
                                           fontStyle: 'italic',
                                         }}
                                       >
@@ -1337,8 +1301,11 @@ const AppDashboardPage: React.FC = () => {
                                   </Label>
                                 </Td>
                                 <Td dataLabel="Description">
-                                  <span style={{ fontSize: '0.8125rem', color: '#6A6E73' }}>
-                                    {link.description || 'Additional route'}
+                                  <span
+                                    className="app-dashboard__description"
+                                    style={{ fontSize: '0.8125rem' }}
+                                  >
+                                    {link.description ?? 'Additional route'}
                                   </span>
                                 </Td>
                               </Tr>
@@ -1363,7 +1330,10 @@ const AppDashboardPage: React.FC = () => {
           <PageSection key={category} style={{ paddingTop: '0.75rem', paddingBottom: '0.75rem' }}>
             <Flex alignItems={{ default: 'alignItemsCenter' }} style={{ marginBottom: '0.75rem' }}>
               <FlexItem>
-                <span style={{ marginRight: '0.5rem', color: '#0066CC', fontSize: '1.25rem' }}>
+                <span
+                  className="app-dashboard__section-icon"
+                  style={{ marginRight: '0.5rem', fontSize: '1.25rem' }}
+                >
                   {getCategoryIcon(category)}
                 </span>
               </FlexItem>
@@ -1373,7 +1343,7 @@ const AppDashboardPage: React.FC = () => {
                 </Title>
               </FlexItem>
               <FlexItem>
-                <span style={{ color: '#6A6E73', fontSize: '0.8125rem', marginLeft: '0.5rem' }}>
+                <span className="app-dashboard__section-title-count">
                   {filteredGroupedRoutes[category].length}{' '}
                   {filteredGroupedRoutes[category].length === 1 ? 'app' : 'apps'}
                 </span>
@@ -1388,20 +1358,9 @@ const AppDashboardPage: React.FC = () => {
                 <Card
                   key={`${app.namespace}-${app.name}`}
                   isCompact
-                  style={{
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                    transition: 'box-shadow 0.2s, transform 0.2s',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
-                    e.currentTarget.style.transform = 'translateY(0)';
-                  }}
+                  className="app-dashboard__card"
                 >
-                  <CardBody style={{ padding: '0.75rem' }}>
+                  <CardBody className="app-dashboard__card-body" style={{ padding: '0.75rem' }}>
                     <Split hasGutter>
                       <SplitItem isFilled>
                         <div
@@ -1414,10 +1373,9 @@ const AppDashboardPage: React.FC = () => {
                         >
                           {app.isCustomLink ? (
                             <span
+                              className="app-dashboard__app-name"
                               style={{
                                 fontSize: '1rem',
-                                fontWeight: 600,
-                                color: '#151515',
                                 flex: 1,
                               }}
                             >
@@ -1426,20 +1384,10 @@ const AppDashboardPage: React.FC = () => {
                           ) : (
                             <a
                               href={getDeploymentLink(app.namespace, app.name)}
+                              className="app-dashboard__app-link"
                               style={{
                                 fontSize: '1rem',
-                                fontWeight: 600,
-                                color: '#151515',
-                                textDecoration: 'none',
                                 flex: 1,
-                              }}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.color = '#0066CC';
-                                e.currentTarget.style.textDecoration = 'underline';
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.color = '#151515';
-                                e.currentTarget.style.textDecoration = 'none';
                               }}
                             >
                               {app.displayName}
@@ -1470,9 +1418,15 @@ const AppDashboardPage: React.FC = () => {
                               }}
                             >
                               {isFavorite(app.namespace, app.name) ? (
-                                <StarIcon style={{ color: '#F0AB00', fontSize: '1rem' }} />
+                                <StarIcon
+                                  className="app-dashboard__favorite-icon--active"
+                                  style={{ fontSize: '1rem' }}
+                                />
                               ) : (
-                                <OutlinedStarIcon style={{ color: '#6A6E73', fontSize: '1rem' }} />
+                                <OutlinedStarIcon
+                                  className="app-dashboard__favorite-icon--inactive"
+                                  style={{ fontSize: '1rem' }}
+                                />
                               )}
                             </Button>
                           </Tooltip>
@@ -1501,10 +1455,10 @@ const AppDashboardPage: React.FC = () => {
                         </div>
                         {app.description && (
                           <p
+                            className="app-dashboard__description"
                             style={{
                               margin: 0,
                               fontSize: '0.75rem',
-                              color: '#6A6E73',
                               lineHeight: '1.3',
                             }}
                           >
@@ -1514,10 +1468,10 @@ const AppDashboardPage: React.FC = () => {
                       </SplitItem>
                     </Split>
                     <div
+                      className="app-dashboard__card-divider"
                       style={{
                         marginTop: '0.5rem',
                         paddingTop: '0.5rem',
-                        borderTop: '1px solid #D2D2D2',
                       }}
                     >
                       <Button
@@ -1545,16 +1499,15 @@ const AppDashboardPage: React.FC = () => {
   };
 
   return (
-    <>
+    <div className="app-dashboard">
       <DocumentTitle>App Dashboard</DocumentTitle>
       <ListPageHeader title="App Dashboard" />
 
       <PageSection
+        className="app-dashboard__toolbar"
         style={{
           paddingTop: '0.75rem',
           paddingBottom: '0.75rem',
-          backgroundColor: '#F0F0F0',
-          borderBottom: '1px solid #D2D2D2',
         }}
       >
         <Flex
@@ -1634,14 +1587,14 @@ const AppDashboardPage: React.FC = () => {
 
               {/* Description text */}
               <FlexItem>
-                <p style={{ margin: 0, fontSize: '0.8125rem', color: '#6A6E73' }}>
-                  Search is persisted locally • Use the view switcher to change layouts • Routes
-                  labeled with{' '}
-                  <code style={{ fontSize: '0.75rem' }}>
+                <p className="app-dashboard__toolbar-description">
+                  Search is persisted locally • Use the view switcher to change layouts •
+                  Deployments labeled or annotated with{' '}
+                  <code className="app-dashboard__toolbar-code">
                     dashboard.yamlwrangler.com/enabled=true
                   </code>{' '}
                   • ConfigMaps labeled with{' '}
-                  <code style={{ fontSize: '0.75rem' }}>
+                  <code className="app-dashboard__toolbar-code">
                     dashboard.yamlwrangler.com/type=custom-link
                   </code>
                 </p>
@@ -1655,9 +1608,9 @@ const AppDashboardPage: React.FC = () => {
               <Flex alignItems={{ default: 'alignItemsCenter' }}>
                 <FlexItem style={{ marginRight: '0.5rem' }}>
                   {showPrivate ? (
-                    <EyeIcon style={{ color: '#6A6E73' }} />
+                    <EyeIcon className="app-dashboard__muted-icon" />
                   ) : (
-                    <EyeSlashIcon style={{ color: '#6A6E73' }} />
+                    <EyeSlashIcon className="app-dashboard__muted-icon" />
                   )}
                 </FlexItem>
                 <FlexItem>
@@ -1678,7 +1631,7 @@ const AppDashboardPage: React.FC = () => {
       </PageSection>
 
       {renderContent()}
-    </>
+    </div>
   );
 };
 

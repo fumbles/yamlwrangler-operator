@@ -87,7 +87,7 @@ spec:
 
     ## Show apps on the dashboard
 
-    The dashboard reads apps from deployments labeled `dashboard.yamlwrangler.com/enabled=true`.
+    The dashboard reads apps from deployments labeled or annotated with `dashboard.yamlwrangler.com/enabled=true`.
     App metadata comes from deployment annotations:
 
     - `dashboard.yamlwrangler.com/display-name`

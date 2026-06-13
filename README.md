@@ -1,4 +1,3 @@
-
 [![Docker Pulls](https://img.shields.io/docker/pulls/fumbles/yamlwrangler-operator?logo=docker&label=operator%20pulls)](https://hub.docker.com/r/fumbles/yamlwrangler-operator)
 [![Docker Pulls](https://img.shields.io/docker/pulls/fumbles/yamlwrangler-dashboard?logo=docker&label=dashboard%20pulls)](https://hub.docker.com/r/fumbles/yamlwrangler-dashboard)
 [![Docker Pulls](https://img.shields.io/docker/pulls/fumbles/yamlwrangler-operator-bundle?logo=docker&label=bundle%20pulls)](https://hub.docker.com/r/fumbles/yamlwrangler-operator-bundle)
@@ -6,454 +5,330 @@
 [![Docker Image Version](https://img.shields.io/docker/v/fumbles/yamlwrangler-operator?sort=semver&logo=docker&label=version)](https://hub.docker.com/r/fumbles/yamlwrangler-operator)
 [![App Showcase](https://img.shields.io/badge/App_Showcase-yamlwrangler.com-ee0000?logo=redhatopenshift&logoColor=white)](https://yamlwrangler.com)
 
-# App Dashboard Operator
+# Yamlwrangler App Dashboard Operator
 
-A Kubernetes operator that automatically manages application discovery and configuration for the App Dashboard Console Plugin.
+The Yamlwrangler App Dashboard Operator installs and manages an OpenShift console plugin that displays application cards from cluster state. It discovers apps from labeled deployments, resolves OpenShift Routes, manages dashboard ConfigMaps, and exposes operator operands for editing namespace config, app groups, and custom links from the OpenShift Installed Operators UI.
 
-## Consolidated Operator Flow
+The primary install and upgrade flow is OLM-based:
 
-This repository now contains both the operator and the OpenShift console plugin source under `console-plugin/`.
+1. Build the operator, console plugin, OLM bundle, and OLM catalog images.
+2. Push those images to the OpenShift internal registry.
+3. Install or upgrade through a `CatalogSource` and `Subscription`.
+4. Create or update the `AppDashboard` instance that installs the console plugin workload.
 
-The intended install model is:
+Raw manifests still exist for development, but OLM through the generated catalog is the supported flow.
 
-1. Install the CRDs.
-2. Deploy the operator.
-3. Create an `AppDashboard` CR.
-4. Label namespaces for app discovery.
+## Components
 
-```bash
-make install
-make deploy
-kubectl apply -f manifests/samples/appdashboard.yaml
-oc label namespace media dashboard.yamlwrangler.com/enabled=true
-```
-
-The `AppDashboard` CR reconciles the console plugin workload, `ConsolePlugin`, optional `ConsoleLink`, and optional Console operator plugin enablement.
+- `AppDashboard`: installs the console plugin deployment, service, `ConsolePlugin`, optional console link, and console plugin enablement.
+- `DashboardNamespaceConfig`: manages the `dashboard-config-<namespace>` ConfigMap for one namespace.
+- `DashboardLink`: adds or edits one custom dashboard link for an app.
+- `DashboardAppGroup`: selects and groups deployments into one dashboard card.
+- Console plugin: reads labeled deployments, deployment annotations, routes, and dashboard ConfigMaps to render the App Dashboard page.
 
 Default namespaces:
 
-- Operator: `app-dashboard-operator`
-- Dashboard/plugin workload: `app-dashboard`
-
-To install through OLM so OpenShift reports the operator with `oc get operator -n app-dashboard-operator`, use:
-
-```bash
-./build-and-deploy.sh v0.1.0 --olm
-```
-
-To remove the current raw install before testing the OLM path:
-
-```bash
-oc delete appdashboard yamlwrangler --ignore-not-found
-PLUGINS=$(oc get console.operator.openshift.io cluster -o json | jq -c '.spec.plugins // [] | map(select(. != "app-dashboard"))')
-oc patch console.operator.openshift.io cluster --type merge -p "{\"spec\":{\"plugins\":${PLUGINS}}}"
-oc delete consoleplugin app-dashboard --ignore-not-found
-oc delete consolelink app-dashboard-link --ignore-not-found
-oc delete namespace app-dashboard-operator app-dashboard app-dashboard-plugin --ignore-not-found
-oc delete clusterrole app-dashboard-operator app-dashboard-patcher --ignore-not-found
-oc delete clusterrolebinding app-dashboard-operator app-dashboard-patcher --ignore-not-found
-```
-
-This keeps the dashboard CRDs in place so existing `DashboardAppGroup` resources are not deleted. For a full purge, also delete:
-
-```bash
-oc delete crd appdashboards.dashboard.yamlwrangler.com dashboardappgroups.dashboard.yamlwrangler.com
-```
-
-## Overview
-
-The App Dashboard Operator provides four main controllers:
-
-1. **AppDashboard Controller**: Installs and manages the OpenShift console plugin from an `AppDashboard` CR
-2. **Namespace Controller**: Watches labeled namespaces, deployments, and routes, then generates or merges app ConfigMaps
-3. **ConfigMap Controller**: Processes ConfigMaps to resolve route names to full URLs for custom links
-   - Labels deployments so the Dashboard can pick them up in the UI
-4. **DashboardAppGroup Controller**: Selects and groups deployments from a namespaced CR
-
-## Features
-
-- **Automatic Discovery**: Label a namespace and all deployments are automatically discovered
-- **ConfigMap Generation**: Creates `dashboard-config-<namespace>` ConfigMaps with deployment templates
-- **Event-driven Updates**: New deployments and routes in labeled namespaces are merged into the existing ConfigMap
-- **Route Resolution**: Automatically resolves OpenShift route names to full URLs
-- **Custom Links**: Support for multiple routes per deployment (sidecars, additional services)
-- **Description Field**: Custom descriptions for each custom link
-
-## Screenshots
-
-
-<img width="1668" height="866" alt="image" src="https://github.com/user-attachments/assets/8b398e87-d7f5-4acf-a469-3a57cf4c4f57" />
+- Operator namespace: `app-dashboard-operator`
+- Console plugin namespace: `app-dashboard`
 
 ## Quick Start
 
-### 1. Label a Namespace
+Use a new semantic version tag for each OLM upgrade. Reusing an installed CSV version can leave OLM on the existing version.
 
 ```bash
-# Enable dashboard discovery for a namespace
-oc label namespace media dashboard.yamlwrangler.com/enabled=true
+./build-and-deploy.sh v1.0.3 --olm
 ```
 
-The operator will automatically:
-- Discover all deployments in the namespace
-- Create a ConfigMap named `dashboard-config-media`
-- Populate it with all deployment names as templates
+The script builds and pushes the operator and plugin images, builds a linux/amd64 OLM bundle and catalog image, applies the generated `CatalogSource` and `Subscription`, waits for the CSV to succeed, and applies the `AppDashboard` sample with the freshly built plugin image.
 
-### 2. Customize the ConfigMap
+Check the install:
 
 ```bash
-# Edit the generated ConfigMap
-oc edit configmap dashboard-config-media -n media
+oc get catalogsource,subscription,installplan,csv -n app-dashboard-operator
+oc get pods -n app-dashboard-operator
+oc get pods -n app-dashboard
+oc get appdashboard yamlwrangler -o yaml
 ```
 
-Example ConfigMap:
+Open the OpenShift console and use the `App Dashboard` navigation item after the console plugin refreshes.
+
+## Ship Release Images
+
+To publish the final images to Docker Hub under `fumbles`, log in first and run the OLM shipping flow:
+
+```bash
+podman login docker.io
+./build-and-deploy.sh v1.0.3 --olm --ship
+```
+
+With the default environment, `--ship --olm` pushes:
+
+- `docker.io/fumbles/yamlwrangler-operator:v1.0.3`
+- `docker.io/fumbles/yamlwrangler-dashboard:v1.0.3`
+- `docker.io/fumbles/yamlwrangler-operator-bundle:v1.0.3`
+- `docker.io/fumbles/yamlwrangler-operator-catalog:v1.0.3`
+
+The local cluster install still uses the internal OpenShift registry images that were just built and pushed. The Docker Hub images are the release artifacts to reference from a public catalog or downstream install flow.
+
+Useful overrides:
+
+```bash
+DOCKERHUB_ORG=fumbles \
+DOCKERHUB_OPERATOR_IMAGE_NAME=yamlwrangler-operator \
+DOCKERHUB_PLUGIN_IMAGE_NAME=yamlwrangler-dashboard \
+DOCKERHUB_BUNDLE_IMAGE_NAME=yamlwrangler-operator-bundle \
+DOCKERHUB_CATALOG_IMAGE_NAME=yamlwrangler-operator-catalog \
+./build-and-deploy.sh v1.0.3 --olm --ship
+```
+
+## Upgrade Notes
+
+OLM upgrades are versioned by CSV. Pick a new version for every published operator build:
+
+```bash
+./build-and-deploy.sh v1.0.4 --olm
+```
+
+The script detects the existing CSV and sets `replaces` on the new CSV and catalog channel entry when the version changes.
+
+If OLM does not move:
+
+```bash
+oc get subscription app-dashboard-operator -n app-dashboard-operator -o yaml
+oc get installplan,csv -n app-dashboard-operator
+oc get catalogsource app-dashboard-operator-catalog -n app-dashboard-operator -o yaml
+```
+
+If the catalog pod fails with `Exec format error`, rebuild through the script. The catalog image is built with `--platform linux/amd64` because OpenShift must be able to run `/bin/opm` on the cluster nodes.
+
+## Configure The Dashboard
+
+Create an `AppDashboard` if the deployment script has not already applied one:
 
 ```yaml
-apiVersion: v1
-kind: ConfigMap
+apiVersion: dashboard.yamlwrangler.com/v1alpha1
+kind: AppDashboard
 metadata:
-  name: dashboard-config-media
+  name: yamlwrangler
+spec:
+  namespace: app-dashboard
+  pluginName: app-dashboard
+  displayName: Yamlwrangler App Dashboard
+  image: image-registry.openshift-image-registry.svc:5000/app-dashboard/app-dashboard-console-plugin:v1.0.3
+  replicas: 2
+  enableConsolePlugin: true
+```
+
+The dashboard displays deployments labeled or annotated with:
+
+```bash
+oc label deployment <deployment> -n <namespace> dashboard.yamlwrangler.com/enabled=true
+```
+
+Supported deployment annotations:
+
+- `dashboard.yamlwrangler.com/display-name`
+- `dashboard.yamlwrangler.com/category`
+- `dashboard.yamlwrangler.com/description`
+- `dashboard.yamlwrangler.com/app-group`
+- `dashboard.yamlwrangler.com/primary-route`
+- `dashboard.yamlwrangler.com/custom-links`
+
+You can manage those fields directly with deployment labels and annotations, or through the custom resources below.
+
+## Manage A Namespace
+
+Create a `DashboardNamespaceConfig` in an application namespace to generate or edit `dashboard-config-<namespace>`:
+
+```yaml
+apiVersion: dashboard.yamlwrangler.com/v1alpha1
+kind: DashboardNamespaceConfig
+metadata:
+  name: media-dashboard
   namespace: media
-data:
-  config.yaml: |
-    # App configuration for media namespace
-    
+spec:
+  enabled: true
+  discoveryMode: Merge
+  apps:
     plex:
       enabled: true
-      displayName: Plex Media Server
+      displayName: Plex
       category: Media
       description: Media streaming server
       primaryRoute: plex
-    
-    vpn-firefox:
-      enabled: true
-      displayName: vpn-Firefox
-      category: Media
-      description: vpn-backed Firefox with gluetun
-      primaryRoute: vpn-firefox
       customLinks:
-        - name: vpn-metube
-          route: vpn-metube
-          description: Metube sidecar for downloading
+        - name: Admin
+          route: plex
+          description: Plex admin route
 ```
 
-### 3. Custom Links with Route Resolution
+`discoveryMode` controls how discovered deployments are handled:
 
-The operator automatically resolves route names to full URLs:
+- `Merge`: keep existing config and append newly discovered deployments.
+- `Replace`: rebuild managed config from discovered deployments and declared apps.
+- `None`: manage only the apps declared in the custom resource.
 
-**Before (what you write):**
-```yaml
-customLinks:
-  - name: vpn-metube
-    route: vpn-metube
-    description: Metube sidecar
-```
+The operator writes the namespace ConfigMap and applies dashboard labels and annotations to deployments so the console plugin can pick them up.
 
-**After (operator resolves):**
-```yaml
-customLinks:
-  - name: vpn-metube
-    url: https://vpn-metube-media.apps.<domain.tld>
-    description: Metube sidecar
-```
+## Add Or Edit Links
 
-## Build and Deploy
-
-### Quick Build and Deploy
-
-```bash
-# Build and deploy with auto-generated timestamp tag
-cd app-dashboard-operator
-./build-and-deploy.sh
-```
-
-The script automatically:
-1. Builds the Go binary
-2. Creates a container image with timestamp tag (e.g., `v1.0.0-20260513040330`)
-3. Pushes to OpenShift internal registry
-4. Deploys the operator
-5. Waits for rollout to complete
-
-### Custom Tag
-
-```bash
-# Build with a specific tag
-./build-and-deploy.sh my-custom-tag
-```
-
-### Manual Build Steps
-
-```bash
-# Build the binary
-make build
-
-# Build the image
-TAG=v1.0.0-$(date +%Y%m%d%H%M%S)
-podman build -t default-route-openshift-image-registry.apps.<domain.tld>/app-dashboard-operator/app-dashboard-operator:$TAG .
-
-# Login to registry
-oc registry login
-
-# Push the image
-podman push default-route-openshift-image-registry.apps.<domain.tld>/app-dashboard-operator/app-dashboard-operator:$TAG
-
-# Deploy
-kubectl apply -f manifests/deploy/
-```
-
-## Check Operator Status
-
-### View Image Streams
-
-```bash
-# List all operator image tags
-oc get imagestreamtags -n app-dashboard-operator
-
-# Example output:
-# NAME                            IMAGE REFERENCE                                                                                                                                                          UPDATED
-# app-dashboard-operator:v1.0.0-20260513040330   image-registry.openshift-image-registry.svc:5000/app-dashboard-operator/app-dashboard-operator@sha256:9324bffe83939265be4d64f44ee83e4085d0f74d4a23285b34a9dd8f1aab4b22   28 minutes ago
-```
-
-### Check Currently Running Image
-
-```bash
-# Get the image currently running in the deployment
-oc get deployment app-dashboard-operator -n app-dashboard-operator -o jsonpath='{.spec.template.spec.containers[0].image}'
-
-# Example output:
-# default-route-openshift-image-registry.apps.<domain.tld>/app-dashboard-operator/app-dashboard-operator:v1.0.0-20260513040330
-```
-
-### Check Operator Pods
-
-```bash
-# View operator pods
-oc get pods -n app-dashboard-operator
-
-# View operator logs
-oc logs -f deployment/app-dashboard-operator -n app-dashboard-operator
-
-# Check for errors
-oc logs deployment/app-dashboard-operator -n app-dashboard-operator | grep -i error
-```
-
-### Check Operator Health
-
-```bash
-# Check deployment status
-oc get deployment app-dashboard-operator -n app-dashboard-operator
-
-# Check rollout status
-oc rollout status deployment/app-dashboard-operator -n app-dashboard-operator
-
-# View recent events
-oc get events -n app-dashboard-operator --sort-by='.lastTimestamp'
-```
-
-## How It Works
-
-### Namespace Controller
-
-1. Watches for namespaces with label `dashboard.yamlwrangler.com/enabled=true`
-2. Lists all deployments in the namespace
-3. Creates/updates ConfigMap `dashboard-config-<namespace>`
-4. Populates ConfigMap with deployment templates
-
-### ConfigMap Controller
-
-1. Watches ConfigMaps with name pattern `dashboard-config-*`
-2. Parses the `config.yaml` data
-3. For each app with `customLinks`:
-   - If `route` field is present, looks up the OpenShift route
-   - Resolves route to full URL (with protocol)
-   - Updates ConfigMap with resolved URL
-4. Preserves manual `url` fields (doesn't overwrite)
-
-## Configuration Fields
-
-### ConfigMap Structure
+Use `DashboardLink` for a single custom link. Set either `url` for an external target or `route` for an OpenShift Route in the same namespace.
 
 ```yaml
-data:
-  config.yaml: |
-    <deployment-name>:
-      enabled: true|false
-      displayName: string
-      category: string
-      description: string
-      primaryRoute: string
-      customLinks:
-        - name: string
-          route: string        # Route name (auto-resolved)
-          url: string          # Direct URL (manual)
-          description: string  # Custom description
+apiVersion: dashboard.yamlwrangler.com/v1alpha1
+kind: DashboardLink
+metadata:
+  name: plex-docs
+  namespace: media
+spec:
+  app: plex
+  name: Documentation
+  category: Media
+  url: https://support.plex.tv
+  description: Plex documentation
 ```
 
-### Custom Link Resolution
+For a Route-backed link:
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `name` | string | Yes | Link identifier |
-| `route` | string | No* | Route name - operator resolves to URL |
-| `url` | string | No* | Direct URL - used as-is |
-| `description` | string | No | Custom description text |
-
-*Either `route` or `url` must be provided
-
-## Troubleshooting
-
-### Operator Not Running
-
-```bash
-# Check operator deployment
-oc get deployment -n app-dashboard-operator
-
-# Check operator logs
-oc logs -f deployment/app-dashboard-operator -n app-dashboard-operator
-
-# Check for image pull errors
-oc describe pod -n app-dashboard-operator -l app=app-dashboard-operator
+```yaml
+apiVersion: dashboard.yamlwrangler.com/v1alpha1
+kind: DashboardLink
+metadata:
+  name: plex-admin
+  namespace: media
+spec:
+  app: plex
+  name: Admin
+  category: Media
+  route: plex
+  description: Plex admin route
 ```
 
-### ConfigMap Not Created
+Deleting an imported `DashboardLink` removes the backing custom link from the managed ConfigMap or standalone custom-link ConfigMap.
 
-```bash
-# Verify namespace label
-oc get namespace media --show-labels
+## Group Apps
 
-# Check operator logs for errors
-oc logs deployment/app-dashboard-operator -n app-dashboard-operator | grep media
+Use `DashboardAppGroup` to group related deployments into one dashboard card:
 
-# Manually trigger by re-labeling
-oc label namespace media dashboard.yamlwrangler.com/enabled=true --overwrite
+```yaml
+apiVersion: dashboard.yamlwrangler.com/v1alpha1
+kind: DashboardAppGroup
+metadata:
+  name: media-apps
+  namespace: media
+spec:
+  displayName: Media Apps
+  category: Media
+  autoLabel: true
+  selector:
+    matchPattern: "^(plex|sonarr|radarr).*"
 ```
 
-### Routes Not Resolving
+For manual grouping in namespace config, set child apps to `groupWith: <parent-app-key>` and set the parent app's `primaryRoute` to the route that should open from the grouped card.
+
+## Live State Import
+
+The operator backfills operands from current cluster state so existing dashboards can be managed from Installed Operators:
+
+- Existing `dashboard-config-<namespace>` ConfigMaps are imported as `DashboardNamespaceConfig` operands.
+- Deployments already labeled or annotated with `dashboard.yamlwrangler.com/enabled=true` are imported into a `DashboardNamespaceConfig` with their current dashboard annotations.
+- Standalone ConfigMaps labeled `dashboard.yamlwrangler.com/type=custom-link` are imported as `DashboardLink` operands.
+- Edits to imported standalone custom-link operands sync back to the source ConfigMap.
+
+This preserves the older ConfigMap import path while allowing new work to happen through CRDs.
+
+Check imported state:
 
 ```bash
-# Check if route exists
-oc get route vpn-metube -n media
-
-# Check operator has RBAC permissions
-oc get clusterrole app-dashboard-operator-role -o yaml
-
-# Check operator logs for route resolution
-oc logs deployment/app-dashboard-operator -n app-dashboard-operator | grep "route"
-```
-
-### ConfigMap Not Updating
-
-```bash
-# Check ConfigMap watch is active
-oc logs deployment/app-dashboard-operator -n app-dashboard-operator | grep "ConfigMap"
-
-# Force update by editing ConfigMap
-oc edit configmap dashboard-config-media -n media
-
-# Restart operator if needed
-oc rollout restart deployment/app-dashboard-operator -n app-dashboard-operator
+oc get dashboardnamespaceconfigs,dashboardlinks,dashboardappgroups -A
+oc get deploy -A -l dashboard.yamlwrangler.com/enabled=true
+oc get cm -A -l dashboard.yamlwrangler.com/type=custom-link
 ```
 
 ## Development
 
-### Prerequisites
+Prerequisites:
 
-- Go 1.21+
-- OpenShift CLI (`oc`)
-- Podman or Docker
+- Go
+- `oc` or `kubectl`
+- Podman
+- Access to an OpenShift cluster for install testing
 
-### Local Development
+Build and test locally:
 
 ```bash
-# Install dependencies
-go mod download
-
-# Run locally (requires kubeconfig)
-make run
-
-# Build binary
 make build
-
-# Run tests
 go test ./...
+bash -n build-and-deploy.sh
 ```
 
-### Code Structure
+Dry-run CRD changes before deploying them:
 
-```
-app-dashboard-operator/
-├── main.go                          # Operator entry point
-├── controllers/
-│   ├── namespace_controller.go      # Namespace watch & ConfigMap generation
-│   └── configmap_controller.go      # ConfigMap watch & route resolution
-├── api/
-│   └── v1alpha1/
-│       └── dashboardappgroup_types.go  # CRD types (future use)
-├── manifests/
-│   ├── crd-dashboardappgroup.yaml   # CRD definition (future use)
-│   └── deploy/                      # Operator deployment manifests
-└── build-and-deploy.sh              # Build and deploy script
+```bash
+oc apply --dry-run=client --validate=false \
+  -f manifests/crds/dashboard.yamlwrangler.com_appdashboards.yaml \
+  -f manifests/crds/dashboard.yamlwrangler.com_dashboardappgroups.yaml \
+  -f manifests/crds/dashboard.yamlwrangler.com_dashboardnamespaceconfigs.yaml \
+  -f manifests/crds/dashboard.yamlwrangler.com_dashboardlinks.yaml
 ```
 
-## RBAC Permissions
+Dry-run sample operands:
 
-The operator requires these permissions:
-
-```yaml
-# Namespace permissions
-- apiGroups: [""]
-  resources: ["namespaces"]
-  verbs: ["get", "list", "watch"]
-
-# ConfigMap permissions
-- apiGroups: [""]
-  resources: ["configmaps"]
-  verbs: ["get", "list", "watch", "create", "update", "patch"]
-
-# Deployment permissions
-- apiGroups: ["apps"]
-  resources: ["deployments"]
-  verbs: ["get", "list", "watch"]
-
-# Route permissions (OpenShift)
-- apiGroups: ["route.openshift.io"]
-  resources: ["routes"]
-  verbs: ["get", "list", "watch"]
+```bash
+oc apply --dry-run=client --validate=false -f manifests/samples/
 ```
 
-## Architecture
+For a raw development install only:
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    App Dashboard Operator                    │
-├─────────────────────────────────────────────────────────────┤
-│                                                               │
-│  ┌──────────────────────┐      ┌──────────────────────┐    │
-│  │ Namespace Controller │      │ ConfigMap Controller │    │
-│  │                      │      │                      │    │
-│  │ • Watch namespaces   │      │ • Watch ConfigMaps   │    │
-│  │ • List deployments   │      │ • Parse config.yaml  │    │
-│  │ • Create ConfigMaps  │      │ • Resolve routes     │    │
-│  │ • Generate templates │      │ • Update URLs        │    │
-│  └──────────────────────┘      └──────────────────────┘    │
-│           │                              │                   │
-└───────────┼──────────────────────────────┼──────────────────┘
-            │                              │
-            ▼                              ▼
-    ┌───────────────┐            ┌──────────────────┐
-    │  Namespaces   │            │   ConfigMaps     │
-    │  (labeled)    │            │ dashboard-config │
-    └───────────────┘            └──────────────────┘
-                                          │
-                                          ▼
-                                 ┌─────────────────┐
-                                 │ Console Plugin  │
-                                 │   (reads CMs)   │
-                                 └─────────────────┘
+```bash
+./build-and-deploy.sh v1.0.3
 ```
 
-## Related Projects
+The raw path applies CRDs and `manifests/deploy/` directly. Use `--olm` for the supported installed-operator flow.
 
-- [App Dashboard Console Plugin](../app-dashboard-console-plugin/) - The UI component
+## Troubleshooting
+
+Check operator health:
+
+```bash
+oc get pods -n app-dashboard-operator
+oc logs -f deployment/app-dashboard-operator -n app-dashboard-operator
+oc get csv -n app-dashboard-operator
+```
+
+Check console plugin health:
+
+```bash
+oc get appdashboard yamlwrangler -o yaml
+oc get pods -n app-dashboard
+oc get consoleplugin app-dashboard -o yaml
+oc get console.operator.openshift.io cluster -o jsonpath='{.spec.plugins}'
+```
+
+Check discovery inputs:
+
+```bash
+oc get deploy -A -l dashboard.yamlwrangler.com/enabled=true
+oc get route -A
+oc get cm -A -l dashboard.yamlwrangler.com/type=custom-link
+oc get dashboardnamespaceconfigs,dashboardlinks -A
+```
+
+If a route-backed link opens the wrong target, check the app's `primaryRoute` in the `DashboardNamespaceConfig` or the `dashboard.yamlwrangler.com/primary-route` deployment annotation.
+
+## Repository Layout
+
+```text
+.
+|-- api/v1alpha1/                 # CRD Go types
+|-- controllers/                  # Reconcile logic and live-state import
+|-- console-plugin/               # OpenShift console plugin frontend
+|-- manifests/crds/               # CRD YAML
+|-- manifests/deploy/             # Raw development deployment manifests
+|-- manifests/olm/                # CSV, CatalogSource, Subscription templates
+|-- manifests/samples/            # Sample custom resources
+`-- build-and-deploy.sh           # Build, ship, and install helper
+```
 
 ## License
 

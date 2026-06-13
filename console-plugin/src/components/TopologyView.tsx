@@ -487,16 +487,18 @@ const TopologyView: React.FC<TopologyViewProps> = ({ groupedRoutes }) => {
   if (topologyData.nodes.length === 0) {
     return (
       <PatternFlyTopologyView
+        className="app-dashboard__topology-empty"
         style={{
           minHeight: '400px',
-          backgroundColor: '#fff',
-          border: '1px solid #d2d2d2',
           borderRadius: '4px',
         }}
       >
         <Bullseye style={{ minHeight: '400px', padding: '1.5rem' }}>
           <EmptyState>
-            <TopologyIcon style={{ fontSize: '3rem', color: '#0066cc' }} />
+            <TopologyIcon
+              className="app-dashboard__topology-empty-icon"
+              style={{ fontSize: '3rem' }}
+            />
             <Title headingLevel="h2" size="lg">
               No topology data available
             </Title>
@@ -529,11 +531,9 @@ const TopologyView: React.FC<TopologyViewProps> = ({ groupedRoutes }) => {
   return (
     <div style={{ position: 'relative' }}>
       <div
+        className="app-dashboard__topology-summary"
         style={{
           padding: '0.5rem 1rem',
-          backgroundColor: '#f5f5f5',
-          borderBottom: '1px solid #d2d2d2',
-          borderRadius: '4px 4px 0 0',
         }}
       >
         <Split hasGutter>
@@ -564,11 +564,9 @@ const TopologyView: React.FC<TopologyViewProps> = ({ groupedRoutes }) => {
 
       <PatternFlyTopologyView
         aria-label="Application topology visualization"
+        className="app-dashboard__topology-canvas"
         style={{
           minHeight: '600px',
-          backgroundColor: '#fff',
-          border: '1px solid #d2d2d2',
-          borderRadius: '0 0 4px 4px',
           outline: '2px solid transparent',
           outlineOffset: '2px',
         }}
@@ -579,12 +577,9 @@ const TopologyView: React.FC<TopologyViewProps> = ({ groupedRoutes }) => {
       </PatternFlyTopologyView>
 
       <div
+        className="app-dashboard__topology-footer"
         style={{
           padding: '0.5rem 1rem',
-          backgroundColor: '#f5f5f5',
-          borderTop: '1px solid #d2d2d2',
-          fontSize: '0.875rem',
-          color: '#6a6e73',
         }}
       >
         <strong>Tip:</strong> Click nodes to open applications • Drag to pan • Scroll to zoom •
