@@ -35,16 +35,33 @@ Default namespaces:
 
 Use a new semantic version tag for each OLM upgrade. Reusing an installed CSV version can leave OLM on the existing version.
 
+To install from the published Docker Hub catalog on a cluster that already has OLM:
+
+```bash
+oc apply -f manifests/olm/install.yaml
+```
+
+Or apply only the catalog source and install from OperatorHub:
+
+```bash
+oc apply -f manifests/olm/catalogsource.yaml
+```
+
+Then search OperatorHub for `Yamlwrangler App Dashboard Operator` and install it into `app-dashboard-operator`.
+
+For local development against the current cluster:
+
 ```bash
 ./build-and-deploy.sh v1.0.3 --olm
 ```
 
-The script builds and pushes the operator and plugin images, builds a linux/amd64 OLM bundle and catalog image, applies the generated `CatalogSource` and `Subscription`, waits for the CSV to succeed, and applies the `AppDashboard` sample with the freshly built plugin image.
+The script builds and pushes the operator and plugin images, builds a linux/amd64 OLM bundle and catalog image, applies a generated internal-registry `CatalogSource` and `Subscription`, waits for the CSV to succeed, and applies the `AppDashboard` sample with the freshly built plugin image.
 
 Check the install:
 
 ```bash
 oc get catalogsource,subscription,installplan,csv -n app-dashboard-operator
+oc get catalogsource yamlwrangler-catalog -n openshift-marketplace
 oc get pods -n app-dashboard-operator
 oc get pods -n app-dashboard
 oc get appdashboard yamlwrangler -o yaml
@@ -325,7 +342,7 @@ If a route-backed link opens the wrong target, check the app's `primaryRoute` in
 |-- console-plugin/               # OpenShift console plugin frontend
 |-- manifests/crds/               # CRD YAML
 |-- manifests/deploy/             # Raw development deployment manifests
-|-- manifests/olm/                # CSV, CatalogSource, Subscription templates
+|-- manifests/olm/                # OLM install manifests and templates
 |-- manifests/samples/            # Sample custom resources
 `-- build-and-deploy.sh           # Build, ship, and install helper
 ```
