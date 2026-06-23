@@ -134,7 +134,33 @@ spec:
   image: image-registry.openshift-image-registry.svc:5000/app-dashboard/app-dashboard-console-plugin:v1.0.3
   replicas: 2
   enableConsolePlugin: true
+  consoleLink:
+    enabled: true
+    text: App Dashboard
+    href: /app-dashboard
+    section: App Dashboard
 ```
+
+All `spec` fields for `AppDashboard`:
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `namespace` | string | no | Namespace where the console plugin workload is installed |
+| `pluginName` | string | no | ConsolePlugin name and workload base name |
+| `displayName` | string | no | Display name shown in the OpenShift console plugin list |
+| `image` | string | no | Console plugin container image to deploy |
+| `imagePullPolicy` | string | no | `Always`, `IfNotPresent`, or `Never` |
+| `replicas` | integer | no | Number of plugin pod replicas (min 0) |
+| `port` | integer | no | Plugin service port (1–65535) |
+| `basePath` | string | no | URL base path for the plugin |
+| `enableConsolePlugin` | boolean | no | Add this plugin to the cluster Console operator `spec.plugins` list |
+| `consoleLink` | object | no | ApplicationMenu ConsoleLink — defaults to enabled when omitted |
+| `consoleLink.enabled` | boolean | no | Create the ConsoleLink (defaults to `true`) |
+| `consoleLink.name` | string | no | ConsoleLink resource name |
+| `consoleLink.text` | string | no | Navigation menu label text |
+| `consoleLink.href` | string | no | Target URL or console-relative path |
+| `consoleLink.section` | string | no | ApplicationMenu section label |
+| `consoleLink.imageURL` | string | no | Icon image URL shown next to the link |
 
 The dashboard displays deployments labeled or annotated with:
 
@@ -225,7 +251,7 @@ Deleting an imported `DashboardLink` removes the backing custom link from the ma
 
 ## Group Apps
 
-Use `DashboardAppGroup` to group related deployments into one dashboard card:
+Use `DashboardAppGroup` to group related deployments into one dashboard card. `spec.displayName`, `spec.category`, and `spec.selector` are **required**. `autoLabel` defaults to `true`.
 
 ```yaml
 apiVersion: dashboard.yamlwrangler.com/v1alpha1
@@ -239,6 +265,15 @@ spec:
   autoLabel: true
   selector:
     matchPattern: "^(plex|sonarr|radarr).*"
+```
+
+Custom links on a `DashboardAppGroup` require both `name` **and** `url` — there is no `route` option here (use `DashboardLink` for Route-backed links):
+
+```yaml
+  customLinks:
+    - name: Plex Admin         # required
+      url: https://app.plex.tv # required — absolute URL only
+      icon: ExternalLinkAltIcon
 ```
 
 For manual grouping in namespace config, set child apps to `groupWith: <parent-app-key>` and set the parent app's `primaryRoute` to the route that should open from the grouped card.

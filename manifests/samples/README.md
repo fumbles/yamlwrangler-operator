@@ -21,7 +21,7 @@ This creates:
 
 ## DashboardAppGroup
 
-The `DashboardAppGroup` CR enables namespace discovery and automatically labels deployments for the dashboard.
+The `DashboardAppGroup` CR selects matching deployments and groups them into a single dashboard card.
 
 **File:** [`dashboardappgroup.yaml`](./dashboardappgroup.yaml)
 
@@ -31,16 +31,18 @@ kubectl apply -f manifests/samples/dashboardappgroup.yaml
 
 ### What it does:
 
-1. **Labels the namespace** with `dashboard.yamlwrangler.com/enabled=true`
-2. **Creates a ConfigMap** (`dashboard-config-<namespace>`) if it doesn't exist
-3. **Discovers deployments** in the namespace and populates the ConfigMap
-4. **Labels matched deployments** with `dashboard.yamlwrangler.com/enabled=true`
-5. **Applies metadata** (category, description, custom links) to deployments
+1. **Matches deployments** by regex pattern, explicit names, or label selectors
+2. **Labels matched deployments** with `dashboard.yamlwrangler.com/enabled=true` (when `autoLabel: true`)
+3. **Groups them** into one card in the App Dashboard under the given `displayName` and `category`
+4. **Applies metadata** (category, description, custom links) to matched deployments
+
+> **Note:** Namespace labeling and `dashboard-config-<namespace>` ConfigMap creation are handled by
+> `DashboardNamespaceConfig`, not `DashboardAppGroup`.
 
 ### Use Cases:
 
-- **UI-driven namespace enablement**: Create through OpenShift Console instead of manually labeling namespaces
-- **Automatic deployment discovery**: Finds deployments matching patterns or labels
+- **Group related deployments**: Combine several microservices into one dashboard card
+- **Automatic labeling**: Auto-apply `dashboard.yamlwrangler.com/enabled=true` to matched deployments
 - **Metadata management**: Apply consistent categories and descriptions to groups of apps
 - **Custom links**: Add additional links (docs, admin panels, etc.) to app cards
 

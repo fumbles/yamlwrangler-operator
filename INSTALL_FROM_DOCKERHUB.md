@@ -35,7 +35,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   sourceType: grpc
-  image: docker.io/fumbles/yamlwrangler-operator-catalog:v1.0.5
+  image: docker.io/fumbles/yamlwrangler-operator-catalog:v1.0.6
   displayName: Yamlwrangler Operators
   publisher: Yamlwrangler
   updateStrategy:
