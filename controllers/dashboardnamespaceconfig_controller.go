@@ -100,8 +100,13 @@ func (r *DashboardNamespaceConfigReconciler) Reconcile(ctx context.Context, req 
 }
 
 func (r *DashboardNamespaceConfigReconciler) loadNamespaceConfigMap(ctx context.Context, namespace, name string) (NamespaceConfig, *corev1.ConfigMap, error) {
+	return loadNamespaceConfigMap(ctx, r.Client, namespace, name)
+}
+
+// loadNamespaceConfigMap is the shared implementation used by multiple reconcilers.
+func loadNamespaceConfigMap(ctx context.Context, c client.Client, namespace, name string) (NamespaceConfig, *corev1.ConfigMap, error) {
 	configMap := &corev1.ConfigMap{}
-	err := r.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace}, configMap)
+	err := c.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace}, configMap)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			return NamespaceConfig{Apps: map[string]AppConfig{}}, nil, nil

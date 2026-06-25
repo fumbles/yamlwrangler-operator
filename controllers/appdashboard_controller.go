@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"maps"
 	"sort"
 	"strings"
 
@@ -164,7 +165,7 @@ func resolveAppDashboard(dashboard *dashboardv1alpha1.AppDashboard) resolvedAppD
 func (r *AppDashboardReconciler) reconcileNamespace(ctx context.Context, _ *dashboardv1alpha1.AppDashboard, cfg resolvedAppDashboard) error {
 	namespace := &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: cfg.Namespace}}
 	_, err := controllerutil.CreateOrPatch(ctx, r.Client, namespace, func() error {
-		ensureLabels(namespace, dashboardInstallLabels(cfg))
+		addLabels(namespace, dashboardInstallLabels(cfg))
 		return nil
 	})
 	return err
@@ -175,7 +176,7 @@ func (r *AppDashboardReconciler) reconcileServiceAccount(ctx context.Context, _ 
 		ObjectMeta: metav1.ObjectMeta{Name: cfg.PluginName, Namespace: cfg.Namespace},
 	}
 	_, err := controllerutil.CreateOrPatch(ctx, r.Client, serviceAccount, func() error {
-		ensureLabels(serviceAccount, dashboardInstallLabels(cfg))
+		addLabels(serviceAccount, dashboardInstallLabels(cfg))
 		return nil
 	})
 	return err
@@ -186,7 +187,7 @@ func (r *AppDashboardReconciler) reconcileNginxConfig(ctx context.Context, _ *da
 		ObjectMeta: metav1.ObjectMeta{Name: cfg.PluginName, Namespace: cfg.Namespace},
 	}
 	_, err := controllerutil.CreateOrPatch(ctx, r.Client, configMap, func() error {
-		ensureLabels(configMap, dashboardInstallLabels(cfg))
+		addLabels(configMap, dashboardInstallLabels(cfg))
 		configMap.Data = map[string]string{
 			"nginx.conf": dashboardNginxConfig(cfg.Port),
 		}
@@ -200,7 +201,7 @@ func (r *AppDashboardReconciler) reconcileService(ctx context.Context, _ *dashbo
 		ObjectMeta: metav1.ObjectMeta{Name: cfg.PluginName, Namespace: cfg.Namespace},
 	}
 	_, err := controllerutil.CreateOrPatch(ctx, r.Client, service, func() error {
-		ensureLabels(service, dashboardInstallLabels(cfg))
+		addLabels(service, dashboardInstallLabels(cfg))
 		if service.Annotations == nil {
 			service.Annotations = map[string]string{}
 		}
@@ -225,10 +226,12 @@ func (r *AppDashboardReconciler) reconcileDeployment(ctx context.Context, _ *das
 	_, err := controllerutil.CreateOrPatch(ctx, r.Client, deployment, func() error {
 		labels := dashboardInstallLabels(cfg)
 		selectorLabels := dashboardSelectorLabels(cfg)
-		ensureLabels(deployment, labels)
+		addLabels(deployment, labels)
 		deployment.Spec.Replicas = &cfg.Replicas
 		deployment.Spec.Selector = &metav1.LabelSelector{MatchLabels: selectorLabels}
-		deployment.Spec.Template.Labels = mergeStringMaps(labels, selectorLabels)
+		templateLabels := maps.Clone(labels)
+		maps.Copy(templateLabels, selectorLabels)
+		deployment.Spec.Template.Labels = templateLabels
 		deployment.Spec.Template.Spec.ServiceAccountName = cfg.PluginName
 		deployment.Spec.Template.Spec.RestartPolicy = corev1.RestartPolicyAlways
 		deployment.Spec.Template.Spec.SecurityContext = &corev1.PodSecurityContext{
@@ -289,7 +292,7 @@ func (r *AppDashboardReconciler) reconcileConsolePlugin(ctx context.Context, _ *
 	plugin.SetName(cfg.PluginName)
 
 	_, err := controllerutil.CreateOrPatch(ctx, r.Client, plugin, func() error {
-		plugin.SetLabels(dashboardInstallLabels(cfg))
+		addLabels(plugin, dashboardInstallLabels(cfg))
 		plugin.Object["spec"] = map[string]interface{}{
 			"displayName": cfg.DisplayName,
 			"i18n": map[string]interface{}{
@@ -319,27 +322,30 @@ func (r *AppDashboardReconciler) reconcileConsoleLink(ctx context.Context, _ *da
 		return err
 	}
 
+	linkName := defaultConsoleLinkName
+	linkText := defaultConsoleLinkText
+	linkSection := defaultConsoleLinkSection
+	linkImageURL := defaultConsoleLinkImageURL
+	if cfg.ConsoleLink != nil {
+		linkName = valueOrDefault(cfg.ConsoleLink.Name, linkName)
+		linkText = valueOrDefault(cfg.ConsoleLink.Text, linkText)
+		linkSection = valueOrDefault(cfg.ConsoleLink.Section, linkSection)
+		linkImageURL = valueOrDefault(cfg.ConsoleLink.ImageURL, linkImageURL)
+	}
+
 	consoleLink := &unstructured.Unstructured{}
 	consoleLink.SetGroupVersionKind(consoleLinkGVK)
-	consoleLink.SetName(consoleLinkStringValue(cfg.ConsoleLink, func(link *dashboardv1alpha1.AppDashboardConsoleLinkSpec) string {
-		return link.Name
-	}, defaultConsoleLinkName))
+	consoleLink.SetName(linkName)
 
 	_, err = controllerutil.CreateOrPatch(ctx, r.Client, consoleLink, func() error {
-		consoleLink.SetLabels(dashboardInstallLabels(cfg))
+		addLabels(consoleLink, dashboardInstallLabels(cfg))
 		consoleLink.Object["spec"] = map[string]interface{}{
 			"location": "ApplicationMenu",
-			"text": consoleLinkStringValue(cfg.ConsoleLink, func(link *dashboardv1alpha1.AppDashboardConsoleLinkSpec) string {
-				return link.Text
-			}, defaultConsoleLinkText),
-			"href": href,
+			"text":     linkText,
+			"href":     href,
 			"applicationMenu": map[string]interface{}{
-				"section": consoleLinkStringValue(cfg.ConsoleLink, func(link *dashboardv1alpha1.AppDashboardConsoleLinkSpec) string {
-					return link.Section
-				}, defaultConsoleLinkSection),
-				"imageURL": consoleLinkStringValue(cfg.ConsoleLink, func(link *dashboardv1alpha1.AppDashboardConsoleLinkSpec) string {
-					return link.ImageURL
-				}, defaultConsoleLinkImageURL),
+				"section":  linkSection,
+				"imageURL": linkImageURL,
 			},
 		}
 		return nil
@@ -348,9 +354,10 @@ func (r *AppDashboardReconciler) reconcileConsoleLink(ctx context.Context, _ *da
 }
 
 func (r *AppDashboardReconciler) resolveConsoleLinkHref(ctx context.Context, link *dashboardv1alpha1.AppDashboardConsoleLinkSpec) (string, error) {
-	href := consoleLinkStringValue(link, func(link *dashboardv1alpha1.AppDashboardConsoleLinkSpec) string {
-		return link.Href
-	}, defaultConsoleLinkHref)
+	href := defaultConsoleLinkHref
+	if link != nil {
+		href = valueOrDefault(link.Href, href)
+	}
 	if strings.HasPrefix(href, "https://") || strings.HasPrefix(href, "mailto:") {
 		return href, nil
 	}
@@ -458,44 +465,24 @@ func dashboardCertificateSecretName(cfg resolvedAppDashboard) string {
 	return cfg.PluginName + "-cert"
 }
 
-func ensureLabels(obj client.Object, labels map[string]string) {
-	existing := obj.GetLabels()
-	if existing == nil {
-		existing = map[string]string{}
-	}
-	for key, value := range labels {
-		existing[key] = value
-	}
-	obj.SetLabels(existing)
-}
-
-func mergeStringMaps(maps ...map[string]string) map[string]string {
-	merged := map[string]string{}
-	for _, values := range maps {
-		for key, value := range values {
-			merged[key] = value
-		}
-	}
-	return merged
-}
-
 func consoleLinkEnabled(link *dashboardv1alpha1.AppDashboardConsoleLinkSpec) bool {
 	return link == nil || link.Enabled == nil || *link.Enabled
 }
 
-func consoleLinkStringValue(link *dashboardv1alpha1.AppDashboardConsoleLinkSpec, getValue func(*dashboardv1alpha1.AppDashboardConsoleLinkSpec) string, defaultValue string) string {
-	if link == nil {
-		return defaultValue
+func boolPtr(value bool) *bool { return &value }
+
+func int32Ptr(value int32) *int32 { return &value }
+
+// addLabels merges extra labels into obj without clobbering unrelated existing labels.
+func addLabels(obj client.Object, extra map[string]string) {
+	existing := obj.GetLabels()
+	if existing == nil {
+		existing = map[string]string{}
 	}
-	return valueOrDefault(getValue(link), defaultValue)
-}
-
-func boolPtr(value bool) *bool {
-	return &value
-}
-
-func int32Ptr(value int32) *int32 {
-	return &value
+	for k, v := range extra {
+		existing[k] = v
+	}
+	obj.SetLabels(existing)
 }
 
 func dashboardNginxConfig(port int32) string {

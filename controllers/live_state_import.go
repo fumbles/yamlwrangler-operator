@@ -336,22 +336,19 @@ func importedDashboardLinkName(appName, linkName string) string {
 
 func dnsLabel(value string) string {
 	value = strings.ToLower(value)
-	var b strings.Builder
-	lastDash := false
-	for i := 0; i < len(value); i++ {
-		c := value[i]
-		isAlphaNumeric := (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9')
-		if isAlphaNumeric {
-			b.WriteByte(c)
-			lastDash = false
-			continue
+	prev := '-'
+	result := strings.Map(func(r rune) rune {
+		if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') {
+			prev = r
+			return r
 		}
-		if !lastDash {
-			b.WriteByte('-')
-			lastDash = true
+		if prev == '-' {
+			return -1 // drop consecutive dashes
 		}
-	}
-	return strings.Trim(b.String(), "-")
+		prev = '-'
+		return '-'
+	}, value)
+	return strings.Trim(result, "-")
 }
 
 func importedOperandLabels() map[string]string {
@@ -380,42 +377,38 @@ func importedCustomLinkConfigMapAnnotations(configMap *corev1.ConfigMap) map[str
 	}
 }
 
-func ensureImportedConfigMapMetadata(obj client.Object, configMap *corev1.ConfigMap) bool {
+// ensureImportedMetadata ensures base labels + a set of required annotation key=value pairs.
+// Returns true if any change was made.
+func ensureImportedMetadata(obj client.Object, extra map[string]string) bool {
 	changed := ensureImportedMetadataBase(obj)
 	annotations := obj.GetAnnotations()
-	if annotations[ImportedFromConfigMapAnnotation] != configMap.Name {
-		annotations[ImportedFromConfigMapAnnotation] = configMap.Name
-		changed = true
-	}
-	if annotations[ImportedFromLiveStateAnnotation] != importSourceNamespaceConfigConfigMap {
-		annotations[ImportedFromLiveStateAnnotation] = importSourceNamespaceConfigConfigMap
-		changed = true
+	for k, v := range extra {
+		if annotations[k] != v {
+			annotations[k] = v
+			changed = true
+		}
 	}
 	return changed
+}
+
+func ensureImportedConfigMapMetadata(obj client.Object, configMap *corev1.ConfigMap) bool {
+	return ensureImportedMetadata(obj, map[string]string{
+		ImportedFromConfigMapAnnotation: configMap.Name,
+		ImportedFromLiveStateAnnotation: importSourceNamespaceConfigConfigMap,
+	})
 }
 
 func ensureImportedLiveStateMetadata(obj client.Object) bool {
-	changed := ensureImportedMetadataBase(obj)
-	annotations := obj.GetAnnotations()
-	if annotations[ImportedFromLiveStateAnnotation] != importSourceLiveDeployments {
-		annotations[ImportedFromLiveStateAnnotation] = importSourceLiveDeployments
-		changed = true
-	}
-	return changed
+	return ensureImportedMetadata(obj, map[string]string{
+		ImportedFromLiveStateAnnotation: importSourceLiveDeployments,
+	})
 }
 
 func ensureImportedCustomLinkConfigMapMetadata(obj client.Object, configMap *corev1.ConfigMap) bool {
-	changed := ensureImportedMetadataBase(obj)
-	annotations := obj.GetAnnotations()
-	if annotations[ImportedFromCustomLinkConfigMap] != configMap.Name {
-		annotations[ImportedFromCustomLinkConfigMap] = configMap.Name
-		changed = true
-	}
-	if annotations[ImportedFromLiveStateAnnotation] != importSourceCustomLinkConfigMap {
-		annotations[ImportedFromLiveStateAnnotation] = importSourceCustomLinkConfigMap
-		changed = true
-	}
-	return changed
+	return ensureImportedMetadata(obj, map[string]string{
+		ImportedFromCustomLinkConfigMap: configMap.Name,
+		ImportedFromLiveStateAnnotation: importSourceCustomLinkConfigMap,
+	})
 }
 
 func ensureImportedMetadataBase(obj client.Object) bool {

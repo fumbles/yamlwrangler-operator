@@ -230,17 +230,13 @@ func (r *NamespaceReconciler) discoverNamespaceConfig(ctx context.Context, names
 	config := NamespaceConfig{Apps: make(map[string]AppConfig)}
 	for _, deployment := range deploymentList.Items {
 		name := deployment.Name
-		isDatabase := isDatabase(name)
-		parentApp := ""
-		if isDatabase {
-			parentApp = detectParentApp(name)
-		}
+		db, parentApp := isDatabase(name)
 
 		config.Apps[name] = AppConfig{
-			Enabled:      !isDatabase,
+			Enabled:      !db,
 			DisplayName:  titleCase(name),
-			Category:     guessCategory(name, isDatabase),
-			Description:  generateDescription(name, isDatabase),
+			Category:     guessCategory(name, db),
+			Description:  generateDescription(name, db, parentApp),
 			PrimaryRoute: findRouteForDeployment(name, routeList.Items),
 			GroupWith:    parentApp,
 		}
@@ -289,18 +285,24 @@ func renderNamespaceConfig(namespaceName string, config NamespaceConfig) string 
 	return header + string(configYAML)
 }
 
-// isDatabase checks if a deployment name indicates it's a database
-func isDatabase(name string) bool {
-	lowerName := strings.ToLower(name)
-	dbIndicators := []string{"postgres", "postgresql", "mysql", "mariadb", "mongodb", "redis", "-db", "-database"}
+var dbSuffixes = []string{
+	"-postgres", "-postgresql", "-mysql", "-mariadb", "-mongodb", "-redis", "-db", "-database",
+}
 
-	for _, indicator := range dbIndicators {
-		if strings.Contains(lowerName, indicator) {
-			return true
+// isDatabase checks if a deployment name indicates it's a database.
+// Also returns the trimmed parent name (non-empty when it is a database).
+func isDatabase(name string) (bool, string) {
+	lower := strings.ToLower(name)
+	for _, suffix := range dbSuffixes {
+		if strings.HasSuffix(lower, suffix) {
+			return true, name[:len(name)-len(suffix)]
+		}
+		if strings.Contains(lower, suffix[1:]) && !strings.HasSuffix(lower, suffix) {
+			// name contains the keyword but not as a suffix — still a db, no clean parent
+			return true, ""
 		}
 	}
-
-	return false
+	return false, ""
 }
 
 // findRouteForDeployment finds a matching route for a deployment
@@ -321,27 +323,6 @@ func findRouteForDeployment(deploymentName string, routes []routev1.Route) strin
 		if route.Name == baseName {
 			return route.Name
 		}
-	}
-
-	return ""
-}
-
-// detectParentApp detects the parent app for a database
-func detectParentApp(name string) string {
-	// Remove common database suffixes
-	parentName := name
-	parentName = strings.TrimSuffix(parentName, "-postgres")
-	parentName = strings.TrimSuffix(parentName, "-postgresql")
-	parentName = strings.TrimSuffix(parentName, "-mysql")
-	parentName = strings.TrimSuffix(parentName, "-mariadb")
-	parentName = strings.TrimSuffix(parentName, "-mongodb")
-	parentName = strings.TrimSuffix(parentName, "-redis")
-	parentName = strings.TrimSuffix(parentName, "-db")
-	parentName = strings.TrimSuffix(parentName, "-database")
-
-	// If we removed something, return the parent name
-	if parentName != name {
-		return parentName
 	}
 
 	return ""
@@ -377,16 +358,13 @@ func guessCategory(name string, isDatabase bool) string {
 }
 
 // generateDescription generates a description based on deployment name
-func generateDescription(name string, isDatabase bool) string {
-	if isDatabase {
-		parentApp := detectParentApp(name)
+func generateDescription(name string, isDB bool, parentApp string) string {
+	if isDB {
 		if parentApp != "" {
 			return fmt.Sprintf("Database for %s", titleCase(parentApp))
 		}
 		return "Database"
 	}
-
-	// Generate description from name
 	return titleCase(name)
 }
 

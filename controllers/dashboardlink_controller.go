@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"reflect"
 
-	"gopkg.in/yaml.v2"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -178,27 +177,7 @@ func (r *DashboardLinkReconciler) removeLinkFromConfigMap(ctx context.Context, l
 }
 
 func (r *DashboardLinkReconciler) loadLinkNamespaceConfig(ctx context.Context, namespace string) (NamespaceConfig, *corev1.ConfigMap, error) {
-	configMapName := ConfigMapNamePrefix + namespace
-	configMap := &corev1.ConfigMap{}
-	err := r.Get(ctx, types.NamespacedName{Name: configMapName, Namespace: namespace}, configMap)
-	if err != nil {
-		if apierrors.IsNotFound(err) {
-			return NamespaceConfig{Apps: map[string]AppConfig{}}, nil, nil
-		}
-		return NamespaceConfig{}, nil, err
-	}
-
-	config := NamespaceConfig{Apps: map[string]AppConfig{}}
-	if configMap.Data != nil && configMap.Data["config.yaml"] != "" {
-		if err := yaml.Unmarshal([]byte(configMap.Data["config.yaml"]), &config); err != nil {
-			return NamespaceConfig{}, nil, fmt.Errorf("failed to parse %s/%s config.yaml: %w", namespace, configMapName, err)
-		}
-	}
-	if config.Apps == nil {
-		config.Apps = map[string]AppConfig{}
-	}
-
-	return config, configMap, nil
+	return loadNamespaceConfigMap(ctx, r.Client, namespace, ConfigMapNamePrefix+namespace)
 }
 
 func (r *DashboardLinkReconciler) setDashboardLinkStatus(ctx context.Context, link *dashboardv1alpha1.DashboardLink, status metav1.ConditionStatus, reason, message string) error {

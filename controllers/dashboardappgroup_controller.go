@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"regexp"
+	"slices"
 	"time"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -172,11 +173,8 @@ func (r *DashboardAppGroupReconciler) findMatchingDeployments(ctx context.Contex
 		}
 
 		for _, deployment := range deploymentList.Items {
-			if nameSet[deployment.Name] {
-				// Avoid duplicates
-				if !contains(matched, deployment.Name) {
-					matched = append(matched, deployment.Name)
-				}
+			if nameSet[deployment.Name] && !slices.Contains(matched, deployment.Name) {
+				matched = append(matched, deployment.Name)
 			}
 		}
 	}
@@ -184,11 +182,15 @@ func (r *DashboardAppGroupReconciler) findMatchingDeployments(ctx context.Contex
 	// Match by labels
 	if len(selector.MatchLabels) > 0 {
 		for _, deployment := range deploymentList.Items {
-			if matchesLabels(deployment.Labels, selector.MatchLabels) {
-				// Avoid duplicates
-				if !contains(matched, deployment.Name) {
-					matched = append(matched, deployment.Name)
+			allMatch := true
+			for key, value := range selector.MatchLabels {
+				if deployment.Labels[key] != value {
+					allMatch = false
+					break
 				}
+			}
+			if allMatch && !slices.Contains(matched, deployment.Name) {
+				matched = append(matched, deployment.Name)
 			}
 		}
 	}
@@ -279,26 +281,6 @@ func (r *DashboardAppGroupReconciler) labelDeployments(ctx context.Context, appG
 	}
 
 	return nil
-}
-
-// Helper functions
-
-func contains(slice []string, item string) bool {
-	for _, s := range slice {
-		if s == item {
-			return true
-		}
-	}
-	return false
-}
-
-func matchesLabels(deploymentLabels, selectorLabels map[string]string) bool {
-	for key, value := range selectorLabels {
-		if deploymentLabels[key] != value {
-			return false
-		}
-	}
-	return true
 }
 
 // ensureNamespaceLabeled ensures the namespace has the dashboard enabled label
